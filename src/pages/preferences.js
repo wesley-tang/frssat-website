@@ -1,7 +1,7 @@
 import { Component } from "react";
 import { connect } from "react-redux";
-import { bindActionCreators } from "redux";
-import { updateUserInfo } from "../state/formState";
+// import { bindActionCreators } from "redux";
+// import { updateUserInfo } from "../state/formState";
 import NavButton from "../components/navbutton";
 import AutocompleteInput from "../components/autocompleteinput";
 
