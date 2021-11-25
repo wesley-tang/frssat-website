@@ -1,7 +1,6 @@
 import { Component } from "react";
 import { connect } from "react-redux";
 // import { bindActionCreators } from "redux";
-// import { updateUserInfo } from "../state/formState";
 import NavButton from "../components/navbutton";
 import AutocompleteInput from "../components/autocompleteinput";
 
@@ -53,7 +52,7 @@ class PreferencesBase extends Component {
           <p align="left">
             In order to match you with a recipient, we would like to know what your preferences are. We will attempt to match you with someone whose subjects match your preferred tags,
             but may need to match you with subjects that you are only willing to draw. You will not be asked to draw for someone who only has subjects you do not wish to draw
-            (although you may be matched with someone who has these subjects). 
+            (although you may be matched with someone who has these subjects).
             Any unassigned tags will be automatically filled into "will not Draw".<br /><a
               data-toggle="modal"
               href="#rankInfo"
@@ -77,13 +76,27 @@ class PreferencesBase extends Component {
         <div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
           <form className="container-fluid">
             <div className="row justify-content-center">
-              <AutocompleteInput title="Prefer Drawing" tags={this.state.usableTags} autocomplPropPassThru={{ sx: { backgroundColor: '#CCFFCC' } }} chipPropPassThru={{ color: 'primary' }} updateTags={(e, values, r) => { this.updateTags(e, values, r, "prefer") }} />
+              <AutocompleteInput
+                title="Prefer Drawing"
+                tags={this.state.usableTags}
+                autocomplPropPassThru={{ sx: { backgroundColor: '#CCFFCC' }, defaultValue: this.state.tagsInTier.prefer }}
+                chipPropPassThru={{ color: 'primary' }}
+                updateTags={(e, values, r) => { this.updateTags(e, values, r, "prefer") }} />
             </div>
             <div className="row justify-content-center" style={{ marginTop: 2.5 + '%', marginBottom: 2.5 + '%' }}>
-              <AutocompleteInput title="Willing to Draw" tags={this.state.usableTags} updateTags={(e, values, r) => { this.updateTags(e, values, r, "willing") }} />
+              <AutocompleteInput
+                title="Willing to Draw"
+                tags={this.state.usableTags}
+                autocomplPropPassThru={{ defaultValue: this.state.tagsInTier.willing }}
+                updateTags={(e, values, r) => { this.updateTags(e, values, r, "willing") }} />
             </div>
             <div className="row justify-content-center">
-              <AutocompleteInput title="Will not Draw" tags={this.state.usableTags} autocomplPropPassThru={{ sx: { backgroundColor: '#FFCCCC' } }} chipPropPassThru={{ color: 'error' }} updateTags={(e, values, r) => { this.updateTags(e, values, r, "banned") }} />
+              <AutocompleteInput
+                title="Will not Draw"
+                tags={this.state.usableTags}
+                autocomplPropPassThru={{ sx: { backgroundColor: '#FFCCCC' }, defaultValue: this.state.tagsInTier.banned }}
+                chipPropPassThru={{ color: 'error' }}
+                updateTags={(e, values, r) => { this.updateTags(e, values, r, "banned") }} />
             </div>
 
             <br />
@@ -104,7 +117,7 @@ class PreferencesBase extends Component {
                 2/7
               </div>
               <div className="d-flex justify-content-end">
-                <NavButton navTo="preferences" type={"UPDATE_PREFERENCES"} payload={{prefsByTier: this.state.tagsInTier, remainingTags: this.state.usableTags}} />
+                <NavButton navTo="backup" type={"UPDATE_PREFERENCES"} payload={{ prefsByTier: this.state.tagsInTier, remainingTags: this.state.usableTags }} />
               </div>
             </div>
           </form>
@@ -114,16 +127,11 @@ class PreferencesBase extends Component {
   }
 }
 
-// const mapStateToProps = state => ({
-//    todos: state.list,
-//    inputText: state.inputText
-// });
-
-const mapDispatchToProps = dispatch => ({
-  // updateUserInfo: bindActionCreators(updateUserInfo, dispatch)
+const mapStateToProps = state => ({
+  tagsInTier: state.prefsByTier
 });
 
 export const Preferences = connect(
-  mapDispatchToProps
+  mapStateToProps
 )(PreferencesBase);
 
