@@ -1,7 +1,5 @@
 import { Component } from "react";
 import { connect } from "react-redux";
-import { bindActionCreators } from "redux";
-import { updateUserInfo } from "../state/formState";
 import NavButton from "../components/navbutton";
 
 class UserIdBase extends Component {
@@ -76,16 +74,6 @@ UserIdBase.defaultProps = {
   userField: ""
 }
 
-// const mapStateToProps = state => ({
-//   // todos: state.list,
-//   // inputText: state.inputText
-// });
-
-const mapDispatchToProps = dispatch => ({
-  updateUserInfo: bindActionCreators(updateUserInfo, dispatch)
-});
-
 export const UserId = connect(
-  mapDispatchToProps
 )(UserIdBase);
 
