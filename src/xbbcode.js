@@ -30,14 +30,13 @@ THE SOFTWARE.
 */
 
 var XBBCODE = (function() {
-    "use strict";
 
     // -----------------------------------------------------------------------------
     // Set up private variables
     // -----------------------------------------------------------------------------
 
     var me = {},
-        urlPattern = /^(?:https?|file|c):(?:\/{1,3}|\\{1})[-a-zA-Z0-9:;,@#%&()~_?\+=\/\\\.]*$/,
+        urlPattern = /^(?:https?|file|c):(?:\/{1,3}|\\{1})[-a-zA-Z0-9:;,@#%&()~_?+=/\\.]*$/,
         colorNamePattern = /^(?:aliceblue|antiquewhite|aqua|aquamarine|azure|beige|bisque|black|blanchedalmond|blue|blueviolet|brown|burlywood|cadetblue|chartreuse|chocolate|coral|cornflowerblue|cornsilk|crimson|cyan|darkblue|darkcyan|darkgoldenrod|darkgray|darkgreen|darkkhaki|darkmagenta|darkolivegreen|darkorange|darkorchid|darkred|darksalmon|darkseagreen|darkslateblue|darkslategray|darkturquoise|darkviolet|deeppink|deepskyblue|dimgray|dodgerblue|firebrick|floralwhite|forestgreen|fuchsia|gainsboro|ghostwhite|gold|goldenrod|gray|green|greenyellow|honeydew|hotpink|indianred|indigo|ivory|khaki|lavender|lavenderblush|lawngreen|lemonchiffon|lightblue|lightcoral|lightcyan|lightgoldenrodyellow|lightgray|lightgreen|lightpink|lightsalmon|lightseagreen|lightskyblue|lightslategray|lightsteelblue|lightyellow|lime|limegreen|linen|magenta|maroon|mediumaquamarine|mediumblue|mediumorchid|mediumpurple|mediumseagreen|mediumslateblue|mediumspringgreen|mediumturquoise|mediumvioletred|midnightblue|mintcream|mistyrose|moccasin|navajowhite|navy|oldlace|olive|olivedrab|orange|orangered|orchid|palegoldenrod|palegreen|paleturquoise|palevioletred|papayawhip|peachpuff|peru|pink|plum|powderblue|purple|red|rosybrown|royalblue|saddlebrown|salmon|sandybrown|seagreen|seashell|sienna|silver|skyblue|slateblue|slategray|snow|springgreen|steelblue|tan|teal|thistle|tomato|turquoise|violet|wheat|white|whitesmoke|yellow|yellowgreen)$/,
         colorCodePattern = /^#?[a-fA-F0-9]{6}$/,
         emailPattern = /[^\s@]+@[^\s@]+\.[^\s@]+/,
@@ -632,7 +631,7 @@ var XBBCODE = (function() {
         from the HTML code tags at the end of the processing.
     */
     function updateTagDepths(tagContents) {
-        tagContents = tagContents.replace(/\<([^\>][^\>]*?)\>/gi, function(matchStr, subMatchStr) {
+        tagContents = tagContents.replace(/<([^>][^>]*?)>/gi, function(matchStr, subMatchStr) {
             var bbCodeLevel = subMatchStr.match(/^bbcl=([0-9]+) /);
             if (bbCodeLevel === null) {
                 return "<bbcl=0 " + subMatchStr + ">";
@@ -687,7 +686,7 @@ var XBBCODE = (function() {
         while (text !== (text = text.replace(/>list([ =][^\]]*)?\]([^>]*?)(>\/list])/gi, function(matchStr,contents,endTag) {
 
             var innerListTxt = matchStr;
-            while (innerListTxt !== (innerListTxt = innerListTxt.replace(/\[\*\]([^\[]*?)(\[\*\]|>\/list])/i, function(matchStr,contents,endTag) {
+            while (innerListTxt !== (innerListTxt = innerListTxt.replace(/\[\*\]([^[]*?)(\[\*\]|>\/list])/i, function(matchStr,contents,endTag) {
                 if (endTag.toLowerCase() === ">/list]") {
                     endTag = "</*]</list]";
                 } else {
