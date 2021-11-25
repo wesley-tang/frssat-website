@@ -4,7 +4,7 @@ export default function Home() {
   const navigate = useNavigate();
 
   function handleClick() {
-    navigate("/userid");
+    navigate("/preferences");
   }
 
   return (
