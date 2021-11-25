@@ -1,74 +1,62 @@
 import { Component } from "react";
 import { connect } from "react-redux";
-import { bindActionCreators } from "redux";
-import { updateUserInfo } from "../state/formState";
 import NavButton from "../components/navbutton";
+import Checkbox from '@mui/material/Checkbox';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 class BackupBase extends Component {
   constructor(props) {
     super(props);
-    this.state = {userField: "", idField: ""};
+    this.state = { backupSanta: false };
   }
 
 
-  handleClick() {
-    this.props.updateUserInfo({username: this.state.userField, userid: this.state.idField,})
-    
-  }
-
-  updateInputValue(event) {
-    this.setState({userField: event.target.value});
+  handleChange(event) {
+    this.setState({ backupSanta: !this.state.backupSanta })
   }
 
   render() {
     return (
       <div className="userIdPage">
-        <div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
-          <h1>What is your Flight Rising Username and ID number?</h1>
+        <div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
+          <h1>Would you like to be backup Santa this year?</h1>
         </div>
-        <div className="container-fluid">
-          <p align="center">
-            We need your Username and ID to identify you and contact you
-            throughout the event!
-            <a data-toggle="modal" href="#userInfo" className="button">Help?</a>
+        <div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
+          <p align="left">
+            Backup Santas may be called on to do an additional piece of artwork in
+            the event that a recipient does not receive their art by Christmas.
+            Your help is greatly appreciated in making everyone's Christmas
+            special, thank you! Please remember there is no obligation to do so!
           </p>
         </div>
-        <div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
-          <form className="row justify-content-center" style={{maxWidth: 970 + 'px'}}>
+        <div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
+          <form className="row justify-content-center" style={{ maxWidth: 970 + 'px' }}>
             <div className="row container justify-content-center">
-              <div className="col">
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  className="form-control"
-                  placeholder="Username"
-                  onChange={event => this.updateInputValue(event)} value={this.state.userField}
-                />
-              </div>
-              <h2>#</h2>
-              <div className="col-4">
-                <input
-                  type="number"
-                  id="userId"
-                  name="userId"
-                  className="form-control"
-                  placeholder="123456"
-                />
+              <div className="form-check form-check-inline">
+                <FormGroup>
+                  <FormControlLabel control={<Checkbox onChange={event => this.handleChange(event)} checked={this.state.backupSanta} />} label="Yes, I would like to be a backup Santa this year!" />
+                </FormGroup>
               </div>
             </div>
             <br />
             <div
-              className="row navBtns container justify-content-center"
-              style={{maxWidth: 970 + 'px'}}
+              className="d-flex justify-content-between container navBtns"
+              style={{ maxWidth: 970 + 'px' }}
             >
               <div className="col">
+                <button
+                  type="button"
+                  className="btn btn-outline-danger toggleTierForm"
+                >
+                  Back
+                </button>
               </div>
               <div className="col my-auto">
-                1/7
+                5/7
               </div>
               <div className="d-flex justify-content-end">
-                <NavButton navTo="info" />
+                <NavButton navTo="info" type={"UPDATE_BACKUP_SANTA"} payload={{backupSanta: this.state.backupSanta}}/>
               </div>
             </div>
           </form>
@@ -84,7 +72,7 @@ class BackupBase extends Component {
 // });
 
 const mapDispatchToProps = dispatch => ({
-  updateUserInfo: bindActionCreators(updateUserInfo, dispatch)
+  // updateUserInfo: bindActionCreators(updateUserInfo, dispatch)
 });
 
 export const Backup = connect(
