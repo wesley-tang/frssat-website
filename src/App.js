@@ -13,6 +13,7 @@ import { Subjects } from "./pages/subjects";
 import { Tier } from "./pages/tier";
 import { Backup } from "./pages/backup";
 import { Info } from "./pages/info";
+import { Finish } from "./pages/finish";
 
 const store = createStore(formState, applyMiddleware(thunk));
 
@@ -29,6 +30,7 @@ function App() {
             <Route path="/tier" element={<Tier />} />
             <Route path="/backup" element={<Backup />} />
             <Route path="/info" element={<Info />} />
+            <Route path="/finish" element={<Finish />} />
           </Routes>
         </div>
       </Router>

@@ -48,7 +48,7 @@ export default function Home() {
             type="button"
             className="btn btn-primary"
             onClick={handleClick}
-            style={{ marginBottom: 2 + '%' }}
+            style={{ marginBottom: 5 + '%' }}
           >
             Let's Get Started!
           </button>

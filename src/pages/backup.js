@@ -45,17 +45,17 @@ class BackupBase extends Component {
               style={{ maxWidth: 970 + 'px' }}
             >
               <div className="col">
-                <button
+                {/* <button
                   type="button"
                   className="btn btn-outline-danger toggleTierForm"
                 >
                   Back
-                </button>
+                </button> */}
               </div>
               <div className="col my-auto">
-                5/7
+                4/5
               </div>
-              <div className="d-flex justify-content-end">
+              <div className="col d-flex justify-content-end">
                 <NavButton navTo="info" type={"UPDATE_BACKUP_SANTA"} payload={{backupSanta: this.state.backupSanta}}/>
               </div>
             </div>

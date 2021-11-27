@@ -91,28 +91,25 @@ class InfoBase extends Component {
             </div>
           </div>
 
-          <form className="row justify-content-center">
             <br />
             <div
               className="d-flex justify-content-between container navBtns"
-              style={{ maxWidth: 970 + 'px' }}
             >
-              {/* <div className="col">
-                <button
+              <div className="col">
+                {/* <button
                   type="button"
                   className="btn btn-outline-danger toggleBackupSantaForm"
                 >
                   Back
-                </button>
-              </div> */}
-              <div className="col my-auto">
-                6/7
+                </button> */}
               </div>
-              <div className="d-flex justify-content-end">
-                <NavButton navTo="preferences" type={"UPDATE_ADDITIONAL_INFO"} payload={{ infoField: this.state.infoField }} />
+              <div className="col my-auto">
+                5/5
+              </div>
+              <div className="col d-flex justify-content-end">
+                <NavButton navTo="finish" type={"UPDATE_ADDITIONAL_INFO"} payload={{ infoField: this.state.infoField }} />
               </div>
             </div>
-          </form>
         </div>
       </div>
     );

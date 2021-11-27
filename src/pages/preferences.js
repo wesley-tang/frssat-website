@@ -53,7 +53,7 @@ class PreferencesBase extends Component {
             In order to match you with a recipient, we would like to know what your preferences are. We will attempt to match you with someone whose subjects match your preferred tags,
             but may need to match you with subjects that you are only willing to draw. You will not be asked to draw for someone who only has subjects you do not wish to draw
             (although you may be matched with someone who has these subjects).
-            Any unassigned tags will be automatically filled into "will not Draw".<br /><a
+            &nbsp;<strong>Any unassigned tags will be automatically filled into "will not Draw"</strong>.<br /><a
               data-toggle="modal"
               href="#rankInfo"
               className="button"
@@ -105,19 +105,19 @@ class PreferencesBase extends Component {
 
             >
               <div className="col">
-                <button
+                {/* <button
                   type="button"
                   className="btn btn-outline-danger"
                   id="returnToUserAndId"
                 >
                   Back
-                </button>
+                </button> */}
               </div>
               <div className="col my-auto">
-                2/7
+                1/5
               </div>
-              <div className="d-flex justify-content-end">
-                <NavButton navTo="backup" type={"UPDATE_PREFERENCES"} payload={{ prefsByTier: this.state.tagsInTier, remainingTags: this.state.usableTags }} />
+              <div className="col d-flex justify-content-end">
+                <NavButton navTo="subjects" type={"UPDATE_PREFERENCES"} payload={{ prefsByTier: this.state.tagsInTier, remainingTags: this.state.usableTags }} />
               </div>
             </div>
           </form>
