@@ -97,11 +97,13 @@ function generateCode(state) {
 
   code += "S";
   state.subjects.forEach(subject => {
-    code += (state.noRanking ? "" : subject.position) + "t"
+    code += (state.noRanking ? "" : subject.position) + "T"
     subject.tags.forEach(tag => {
       code += tag.id
     })
+    code += "|"
   })
+  code += "S";
 
   code += "t";
   if (state.highTier) {
@@ -129,7 +131,7 @@ function generateSubjectText(subjects) {
     [b]Subject Name:[/b] ${subject.name}
     [b]Reference pictures/links:[/b] `;
 
-    if (subject.imageUrl !== undefined) {
+    if (subject.imageUrl === undefined) {
       subjectsText += "none"
     } else if (subject.imageUrl.endsWith("png") || subject.imageUrl.endsWith("jpg")) {
       subjectsText += `\n[img]${subject.imageUrl}[/img]`;

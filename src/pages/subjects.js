@@ -233,13 +233,15 @@ class SubjectsBase extends Component {
         <div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
           <h1>Please add the subjects you want drawn</h1>
         </div>
-        <div className="container-fluid">
-          <p align="center">
-            Please fill in the subjects that you wish to have drawn for this event. You will be asked to select the appropriate tags for how you want your
-            subjects drawn. Click on the arrows to increase or decrease the priority of each subject, from 1st being your most wanted to
-            5th being your least. Matching will try to find someone to draw your 1st subject, before trying your 2nd and so on. You do not need to fill in all 5.
-            Tap on a card to edit it!
-          </p>
+        <div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
+          <div className="row justify-content-center">
+            <p align="center">
+              Please fill in the subjects that you wish to have drawn for this event. You will be asked to select the appropriate tags for how you want your
+              subjects drawn. Click on the arrows to increase or decrease the priority of each subject, from 1st being your most wanted to
+              5th being your least. Matching will try to find someone to draw your 1st subject, before trying your 2nd and so on. You do not need to fill in all 5.
+              Tap on a card to edit it!
+            </p>
+          </div>
         </div>
         <div className="container-fluid">
           <div className="row justify-content-center">
@@ -269,7 +271,7 @@ class SubjectsBase extends Component {
                 2/5
               </div>
               <div className="col d-flex justify-content-end">
-                <NavButton navTo="tier" type={"UPDATE_SUBJECTS"} payload={{ subjects: this.state.subjects, hasRanking: !this.state.noRanking }} />
+                <NavButton navTo="tier" type={"UPDATE_SUBJECTS"} payload={{ subjects: this.state.subjects, noRanking: !this.state.noRanking }} />
               </div>
             </div>
           </div>
