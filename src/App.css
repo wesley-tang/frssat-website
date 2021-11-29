@@ -103,7 +103,6 @@ text-align: right;
   font-family: "Roboto", sans-serif;
   text-decoration: none;
   font-weight: 200;
-  color: rgb(15, 63, 58);
   letter-spacing: 0.08em;
 
   resize: none;
@@ -117,6 +116,7 @@ html {
 
 body {
   background-color: rgb(232, 247, 249);
+  color: rgb(15, 63, 58);
 }
 
 h1 {

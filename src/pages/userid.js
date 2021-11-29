@@ -35,7 +35,8 @@ class UserIdBase extends Component {
                   name="username"
                   className="form-control"
                   placeholder="Username"
-                  onChange={event => this.updateInputValue(event)} value={this.state.userField}
+                  onChange={event => this.updateInputValue(event)}
+                  value={this.state.userField}
                 />
               </div>
               <h2>#</h2>
