@@ -8,30 +8,38 @@ import Button from '@mui/material/Button';
 class FinishBase extends Component {
   componentWillMount() {
     this.props.loadFinalText();
-    this.setState({ disabled: true });
+    this.setState({ dirty: true });
+
   }
 
-  handleClick(event) {
-    /* Get the text field */
-    let copyText = document.getElementById("completeForm");
+  componentDidMount() {
+    window.onbeforeunload = function () {
+      if (this.state.dirty) {
+        return "Are you sure? You have not finished your form yet and leaving will lose your progress.";
+      }
+    };
 
-    /* Select the text field */
-    copyText.select();
-    copyText.setSelectionRange(0, 99999); /*For mobile devices*/
-    /* Copy the text inside the text field */
+    const source = document.querySelector('#completeForm');
+
+    source.addEventListener('copy', (event) => {
+      this.setState({ dirty: false });
+    });
+  }
+
+  handleClick() {
+    this.select()
     document.execCommand("copy");
 
-    /* Alert the copied text */
     alert(
       "And that's it - you've copied your completed sign-up form! Head to the forums to paste and post to finish signing up :D"
     );
-    this.setState({ disabled: false });
+    this.setState({ dirty: false });
   }
 
-  select(event) {
+  select() {
     let copyText = document.getElementById("completeForm");
     copyText.select();
-    copyText.setSelectionRange(0, 99999); /*For mobile devices*/
+    copyText.setSelectionRange(0, 99999); 
   }
 
   render() {
@@ -72,7 +80,7 @@ class FinishBase extends Component {
                 id="exitBtn"
                 type="button"
                 class="btn btn-success"
-                disabled={this.state.disabled}
+                disabled={this.state.dirty}
               >
                 To the Forums
               </button></a>

@@ -1,7 +1,6 @@
 import { Component } from "react";
 import { connect } from "react-redux";
 
-
 import XBBCODE from "../xbbcode.js";
 
 import TextField from '@mui/material/TextField';
@@ -23,7 +22,6 @@ class InfoBase extends Component {
     transform: 'translate(-50%, -50%)',
     width: '80%',
     bgcolor: 'background.paper',
-    border: '2px solid #000',
     boxShadow: 24,
     p: 4,
   };
@@ -33,11 +31,11 @@ class InfoBase extends Component {
   }
 
   handleOpen(event) {
-    this.setState({ ...this.state, open: true });
+    this.setState({open: true });
   }
 
   handleClose(event) {
-    this.setState({ ...this.state, open: false });
+    this.setState({open: false });
   }
 
   processText() {

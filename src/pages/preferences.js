@@ -1,6 +1,5 @@
 import { Component } from "react";
 import { connect } from "react-redux";
-// import { bindActionCreators } from "redux";
 import NavButton from "../components/navbutton";
 import AutocompleteInput from "../components/autocompleteinput";
 
@@ -39,7 +38,7 @@ class PreferencesBase extends Component {
     let newPrefs = { ...this.state.tagsInTier };
     newPrefs[prefTier] = newValues;
 
-    this.setState({ ...this.state, usableTags: newTags, tagsInTier: newPrefs });
+    this.setState({usableTags: newTags, tagsInTier: newPrefs });
   }
 
   render() {

@@ -14,10 +14,12 @@ export default function AutocompleteInput(props) {
                 getOptionLabel={(option) => option.name}
                 {...props.autocomplPropPassThru || {}}
                 onChange={props.updateTags}
+                error
                 renderTags={(value, getTagProps) =>
                     value.map((option, index) => (
                         <Chip
                             variant="outlined"
+                            // Add hover tooltip or modal prompt in this chip here (would that be too small?)
                             label={option.name}
                             {...getTagProps({ index })}
                             {...props.chipPropPassThru || {}}
@@ -29,7 +31,7 @@ export default function AutocompleteInput(props) {
                         {...params}
                         variant="filled"
                         label={props.title}
-                        placeholder="Preference Tag"
+                        placeholder="Tag name"
                     />
                 )}
             />
