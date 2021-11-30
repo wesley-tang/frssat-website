@@ -5,7 +5,6 @@ import NavButton from "../components/navbutton";
 import SubjectModal from "../components/subjectmodal";
 import { SubjectCard } from "../components/subjectcard";
 
-
 import Stack from '@mui/material/Stack';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import Card from '@mui/material/Card';
@@ -236,9 +235,10 @@ class SubjectsBase extends Component {
         <div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
           <div className="row justify-content-center">
             <p align="left">
-              Please fill in the subjects that you wish to have drawn for this event. Click on the arrows to increase or decrease the priority of each subject, from 1st being your most wanted to
-              5th being your least. Matching will try to find someone to draw your 1st subject, before trying your 2nd and so on. You cna disable ranking if you don't care or have
-              a preference for which subject you want drawn. You may have up to 5 subjects.
+              Please fill in the subjects that you wish to have drawn for this event. Click
+              on the arrows to increase or decrease the priority of each subject, from 1st being your most wanted to
+              5th being your least. You can disable ranking if you don't care or have no
+              preference for which subject you want drawn. You may have up to 5 subjects.
             </p>
             <p align="center">
               Tap on a card to edit it!
