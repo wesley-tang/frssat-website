@@ -3,8 +3,8 @@ import Modal from "react-bootstrap/Modal";
 
 import XBBCODE from "../xbbcode.js";
 
-// import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-// import Tooltip from '@mui/material/Tooltip';
+import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
+import Tooltip from '@mui/material/Tooltip';
 import AutocompleteInput from "../components/autocompleteinput";
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
@@ -24,13 +24,16 @@ export default function SubjectModal(props) {
     //         </Tooltip>
     //       </div>
     //     )
-    let text = `
-    [b]Subject Name:[/b] ${props.name}
-    [b]Reference pictures/links:[/b] `;
+    let text = "";
+    text += `[b][u]Subject Name[/u][/b]: ${props.name}
+[b]Reference pictures/links:[/b] `;
 
-    if (props.imageUrl !== undefined && (props.imageUrl.endsWith("png") || props.imageUrl.endsWith("jpg")))
+    if (props.imageUrl === undefined) {
+        text += "none"
+    } else if (props.imageUrl.endsWith("png") || props.imageUrl.endsWith("jpg") || props.imageUrl.endsWith("gif")) {
         text += `\n[img]${props.imageUrl}[/img]`;
-    else text += props.imageUrl;
+    }
+    else { text += props.imageUrl; }
 
     text += "\n[b]I would like to receive this type of art for this subject:[/b] ";
 
@@ -114,7 +117,11 @@ export default function SubjectModal(props) {
                             />
                         </div>
                         <div className="form-group container-fluid" style={{ maxWidth: 970 + 'px' }}>
-                            <label>Subject Reference Image: </label><input
+                            <Tooltip disableFocusListener title="Links ending in png, jpg or gif will render.">
+                                <HelpOutlineOutlinedIcon fontSize="10" />
+                            </Tooltip>
+                            <label>&nbsp;Subject Reference Image: </label>
+                            <input
                                 type="url"
                                 id="subjectImg"
                                 name="subjectImg"
@@ -123,6 +130,7 @@ export default function SubjectModal(props) {
                                 onChange={props.updateImageUrlInput}
                                 value={props.imageUrl}
                             />
+
                             {/* <div className="row justify-content-center" style={{ maxWidth: 970 + 'px' }}>
                                 <FormGroup>
                                     <FormControlLabel control={<Checkbox onChange={event => this.handleChange(event)} checked={this.state.noRanking} />} label={this.fancyLabel()} />
@@ -131,8 +139,11 @@ export default function SubjectModal(props) {
                             {image}
                         </div>
                         <br />
-                        <h5>
-                            What type of art would you like for this character?
+                        
+                        <h5><Tooltip disableFocusListener title="This includes tags for which you have no reference art, though we recommend it or a written description, if possible.">
+                            <HelpOutlineOutlinedIcon fontSize="10" />
+                        </Tooltip>
+                            &nbsp;What type of art would you like for this character?
                         </h5>
                         <AutocompleteInput
                             title="Subject Tags"

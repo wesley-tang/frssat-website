@@ -7,6 +7,7 @@ const INITIAL_STATE = {
     banned: []
   },
   subjects: [],
+  noRanking: false,
   highTier: true,
   backupSanta: false,
   additionalInfo: ""
@@ -49,7 +50,7 @@ export function formState(state = INITIAL_STATE, action) {
         prefsByTier: prefs
       };
     case "UPDATE_SUBJECTS":
-      return { ...state, subjects: action.payload.subjects };
+      return { ...state, subjects: action.payload.subjects, noRanking: action.payload.noRanking };
     case "UPDATE_BACKUP_SANTA":
       return { ...state, backupSanta: action.payload.backupSanta };
     case "UPDATE_ADDITIONAL_INFO":
@@ -66,13 +67,13 @@ export function formState(state = INITIAL_STATE, action) {
 }
 
 function generateCopyText(state) {
-  return `[b]Information for your Secret Santa:[/b]
+  return `[b][size=4]Information for your Secret Santa:[/size][/b]
 ${state.additionalInfo}
 
-[b]Subjects[/b]:
-${generateSubjectText(state.subjects)}
+[b][size=4]Subjects[/size][/b]:
+${generateSubjectText(state.subjects, state.noRanking)}
 
-~/${generateCode(state)}/~`;
+[size=1]~/${generateCode(state)}/~[/size]`;
 }
 
 function generateCode(state) {
@@ -97,7 +98,7 @@ function generateCode(state) {
 
   code += "S";
   state.subjects.forEach(subject => {
-    code += (state.noRanking ? "" : subject.position) + "T"
+    code += (state.noRanking ? "n" : "r" + subject.position) + "T";
     subject.tags.forEach(tag => {
       code += tag.id
     })
@@ -122,23 +123,25 @@ function generateCode(state) {
   return code;
 }
 
-function generateSubjectText(subjects) {
+function generateSubjectText(subjects, noRanking) {
   let subjectsText = "";
+
+  subjectsText += (noRanking ? '[b]*No preference for subject order*[/b]' : "");
 
   subjects.forEach(subject => {
     subjectsText += `\n
-    ${subject.position ? "" : `[b]PRIORITY:[/b] ${getOrdinal(subject.position)}`}
-    [b]Subject Name:[/b] ${subject.name}
-    [b]Reference pictures/links:[/b] `;
+${noRanking ? "" : `[b]PRIORITY:[/b] ${getOrdinal(subject.position)}`}
+[b][u]Subject Name[/u][/b]: ${subject.name}
+[b]Reference pictures/links:[/b] `;
 
     if (subject.imageUrl === undefined) {
       subjectsText += "none"
-    } else if (subject.imageUrl.endsWith("png") || subject.imageUrl.endsWith("jpg")) {
+    } else if (subject.imageUrl.endsWith("png") || subject.imageUrl.endsWith("jpg") || subject.imageUrl.endsWith("gif")) {
       subjectsText += `\n[img]${subject.imageUrl}[/img]`;
     }
     else { subjectsText += subject.imageUrl; }
 
-    subjectsText += "\n[b]I would like to receive this type of art for this subject:[/b]: ";
+    subjectsText += "\n[b]I would like to receive this type of art for this subject:[/b] ";
 
     let tags = []
     subject.tags.forEach(tag => {

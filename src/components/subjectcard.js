@@ -27,7 +27,7 @@ export class SubjectCard extends Component {
     }
 
     renderDescription() {
-        if (this.props.subject.imageUrl !== undefined && (this.props.subject.imageUrl.endsWith("png") || this.props.subject.imageUrl.endsWith("jpg"))) {
+        if (this.props.subject.imageUrl !== undefined && (this.props.subject.imageUrl.endsWith("png") || this.props.subject.imageUrl.endsWith("jpg") || this.props.subject.imageUrl.endsWith("gift"))) {
             return null;
         }
         return (
@@ -38,7 +38,7 @@ export class SubjectCard extends Component {
     }
 
     getSx() {
-        if (this.props.subject.imageUrl === undefined) {
+        if (this.props.subject.imageUrl === undefined || !(this.props.subject.imageUrl.endsWith("png") || this.props.subject.imageUrl.endsWith("jpg") || this.props.subject.imageUrl.endsWith("gift"))) {
             return { sx: { height: (this.props.noRanking ? 100 : 70) + '%' } }
         }
     }
@@ -48,7 +48,7 @@ export class SubjectCard extends Component {
 
         this.props.subject.tags.forEach(tag => {
             chips.push(
-                <Chip label={tag.name} size="small"/>
+                <Chip label={tag.name} size="small" />
             )
         });
 
@@ -99,7 +99,9 @@ export class SubjectCard extends Component {
                         <Typography gutterBottom variant="h5" component="div">
                             {this.props.subject.name}
                         </Typography>
-                        {this.renderDescription()}
+                        <p style={{ overflow: 'hidden', textOverflow: 'ellipsis', maxHeight: 150 }}>
+                            {this.renderDescription()}
+                        </p>
                         <Stack spacing={1}>
                             {this.getChips()}
                         </Stack>

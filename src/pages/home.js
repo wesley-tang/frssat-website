@@ -30,13 +30,13 @@ export default function Home() {
           providing you with the post to copy paste onto the FR forums!
           <br /><br />
           Don't know what that is? Find out in our&nbsp;
-          <a href="https://www1.flightrising.com/forums/cc/2928938"
+          <a href="https://www1.flightrising.com/forums/cc/3078024"
           >official forum thread</a
           >. For more details on sign-up, refer to the&nbsp;
           <a
-            href="https://www1.flightrising.com/forums/cc/2928940"
+            href="https://www1.flightrising.com/forums/cc/3079245"
           >sign-up thread</a
-          >. <strong>Sign-ups close November 29th at rolllover.</strong><br /><br />
+          >. <strong>Sign-ups close Saturday December 5th at rolllover.</strong><br /><br />
           Use of this site is not required to sign up. No personal data is
           collected or stored. We are neither affiliated with nor endorsed by
           Stormlight Workshop LLC.

@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import { loadFinalText, reset } from "../state/formState";
+
 import NavButton from "../components/navbutton";
 import Button from '@mui/material/Button';
 
@@ -52,10 +53,10 @@ class FinishBase extends Component {
           <p align="left">
             Copy your completed form below and paste it to the forums on our sign
             up thread&nbsp;
-            <a href="https://www1.flightrising.com/forums/cc/2928940">HERE</a>,
-            and make any adjustments necessary! (We advise you <strong>not to change the
-              formatting of anything above the dividing line</strong> besides the Additional
-            Info field please!)
+            <a href="https://www1.flightrising.com/forums/cc/3079245">HERE</a>,
+            and make any adjustments necessary to <strong>info fields only</strong>. If you need to change anything else, please
+            fill out the form again. (Please <strong> do not change the
+              the code at the bottom</strong>)
           </p>
         </div>
         <div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
@@ -76,7 +77,7 @@ class FinishBase extends Component {
               <NavButton navTo="preferences" type={"RESET"} payload={{}} text="RESET" />
             </div>
             <div className="col d-flex justify-content-end">
-              <a href="https://www1.flightrising.com/forums/cc/2928940"><button
+              <a href="https://www1.flightrising.com/forums/cc/3079245"><button
                 id="exitBtn"
                 type="button"
                 class="btn btn-success"

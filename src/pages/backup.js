@@ -25,7 +25,7 @@ class BackupBase extends Component {
         <div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
           <p align="left">
             Backup Santas may be called on to do an additional piece of artwork in
-            the event that a recipient does not receive their art by Christmas.
+            the event that a recipient does not receive their art by the end of the event.
             Your help is greatly appreciated in making everyone's Christmas
             special, thank you! Please remember there is no obligation to do so!
           </p>

@@ -73,7 +73,7 @@ class SubjectsBase extends Component {
   }
 
   updateImageUrlInput(event) {
-    this.setState({ subjectImageUrl: event.target.value, subjectHasImage: (event.target.value.endsWith("png") || event.target.value.endsWith("jpg")) });
+    this.setState({ subjectImageUrl: event.target.value, subjectHasImage: (event.target.value.endsWith("png") || event.target.value.endsWith("jpg") || event.target.value.endsWith("gif")) });
   }
 
   updateInfoInput(event) {
@@ -104,7 +104,7 @@ class SubjectsBase extends Component {
       subjectImageUrl: subject.imageUrl,
       subjectInfo: subject.info,
       subjectPosition: subject.position,
-      subjectHasImage: (subject.imageUrl ? subject.imageUrl.endsWith("png") || subject.imageUrl.endsWith("jpg") : undefined)
+      subjectHasImage: (subject.imageUrl ? subject.imageUrl.endsWith("png") || subject.imageUrl.endsWith("jpg") || subject.imageUrl.endsWith("gif") : undefined)
 
     });
   }
@@ -235,10 +235,12 @@ class SubjectsBase extends Component {
         </div>
         <div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
           <div className="row justify-content-center">
+            <p align="left">
+              Please fill in the subjects that you wish to have drawn for this event. Click on the arrows to increase or decrease the priority of each subject, from 1st being your most wanted to
+              5th being your least. Matching will try to find someone to draw your 1st subject, before trying your 2nd and so on. You cna disable ranking if you don't care or have
+              a preference for which subject you want drawn. You may have up to 5 subjects.
+            </p>
             <p align="center">
-              Please fill in the subjects that you wish to have drawn for this event. You will be asked to select the appropriate tags for how you want your
-              subjects drawn. Click on the arrows to increase or decrease the priority of each subject, from 1st being your most wanted to
-              5th being your least. Matching will try to find someone to draw your 1st subject, before trying your 2nd and so on. You do not need to fill in all 5.
               Tap on a card to edit it!
             </p>
           </div>
@@ -271,7 +273,7 @@ class SubjectsBase extends Component {
                 2/5
               </div>
               <div className="col d-flex justify-content-end">
-                <NavButton navTo="tier" type={"UPDATE_SUBJECTS"} payload={{ subjects: this.state.subjects, noRanking: !this.state.noRanking }} />
+                <NavButton navTo="tier" type={"UPDATE_SUBJECTS"} payload={{ subjects: this.state.subjects, noRanking: this.state.noRanking }} />
               </div>
             </div>
           </div>
