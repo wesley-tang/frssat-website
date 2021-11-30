@@ -44,7 +44,7 @@ class TierBase extends Component {
         <Modal show={this.state.openTierA} onHide={() => { this.handleClose("openTierA") }}>
           <Modal.Header>
             <Modal.Title>Tier A Examples</Modal.Title>
-            <IconButton onClick={() => { this.handleClose("openDropenTierAagHelp") }}>
+            <IconButton onClick={() => { this.handleClose("openTierA") }}>
               <CloseIcon fontSize="small" />
             </IconButton>
           </Modal.Header>

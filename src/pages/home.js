@@ -36,8 +36,9 @@ export default function Home() {
           <a
             href="https://www1.flightrising.com/forums/cc/3079245"
           >sign-up thread</a
-          >. <strong>Sign-ups close Saturday December 5th at rolllover.</strong><br /><br />
-          Use of this site is not required to sign up. No personal data is
+          >. <strong>Sign-ups close Saturday December 5th at rolllover.</strong>
+          <br /><br />Please refrain from using the back button or reloading the page.
+          No personal data is
           collected or stored. We are neither affiliated with nor endorsed by
           Stormlight Workshop LLC.
         </p>
