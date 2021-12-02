@@ -109,7 +109,7 @@ class TierBase extends Component {
           <p align="left">
             To alleviate the pressure on those with limited time, and to reassure
             those that are planning to devote lots of time, there will be two
-            tiers. <strong> tiers are NOT an indicator of <em>quality</em>, only time.</strong>
+            tiers. <strong> Tiers are NOT an indicator of <em>quality</em>, only time.</strong>&nbsp;
             We expect that you put forth your best effort into your art.<br /><br />
             <strong>Tier A</strong>: You will be expected to
             complete a full art piece. Show your recipient what you can do, whether

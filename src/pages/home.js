@@ -36,7 +36,7 @@ export default function Home() {
           <a
             href="https://www1.flightrising.com/forums/cc/3079245"
           >sign-up thread</a
-          >. <strong>Sign-ups close Saturday December 5th at rollover.</strong>
+          >. <strong>Sign-ups close Sunday December 5th at rollover.</strong>
           <br /><br />Please refrain from using the back button or reloading the page.
           No personal data is
           collected or stored. We are neither affiliated with nor endorsed by
