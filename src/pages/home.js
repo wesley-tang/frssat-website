@@ -41,18 +41,22 @@ export default function Home() {
           No personal data is
           collected or stored. We are neither affiliated with nor endorsed by
           Stormlight Workshop LLC.
+          <br />
+          <br/>
+          <strong style={{ color: "#d32f2f" }}>* By signing up, you are agreeing and committing to producing a drawing by the deadline to the best of your ability
+            for the given tier, and understand failing to do so may bar you from participating in future events.</strong>
         </p>
       </div>
       <br />
       <div className="row justify-content-center">
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleClick}
-            style={{ marginBottom: 5 + '%' }}
-          >
-            Let's Get Started!
-          </button>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={handleClick}
+          style={{ marginBottom: 5 + '%' }}
+        >
+          Let's Get Started!
+        </button>
       </div>
     </div>
   );
