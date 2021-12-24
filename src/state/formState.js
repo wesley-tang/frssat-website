@@ -123,6 +123,7 @@ function generateCode(state) {
   return code;
 }
 
+// TODO ADD ASTERISK WARNING ON CHANGING THE NO TOUCHY FIELDS
 function generateSubjectText(subjects, noRanking) {
   let subjectsText = "";
 

@@ -33,6 +33,7 @@ class SubjectsBase extends Component {
     };
   }
 
+  //TODO FIX THE WIDTH NOT HAVING A MARGIN
   // todo rewrite these as basically one function but going in different directions by swapping the variables that are swapped
   handleUpvoteClick(subject) {
     const newSubjectsOrdering = Array.from(this.state.subjects);

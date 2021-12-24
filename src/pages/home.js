@@ -43,6 +43,7 @@ export default function Home() {
           Stormlight Workshop LLC.
           <br />
           <br/>
+          {/*TODO MAKE THIS A MODAL POPUP RIGHT BEFORE THE END! */}
           <strong style={{ color: "#d32f2f" }}>* By signing up, you are agreeing and committing to producing a drawing by the deadline to the best of your ability
             for the given tier, and understand failing to do so may bar you from participating in future events.</strong>
         </p>
