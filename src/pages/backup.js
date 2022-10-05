@@ -1,69 +1,72 @@
-import { Component } from "react";
-import { connect } from "react-redux";
+import {Component} from "react";
+import {connect} from "react-redux";
 import NavButton from "../components/navbutton";
 import Checkbox from '@mui/material/Checkbox';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
 class BackupBase extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { backupSanta: false };
-  }
+	constructor(props) {
+		super(props);
+		this.state = {backupSanta: false};
+	}
 
 
-  handleChange(event) {
-    this.setState({ backupSanta: !this.state.backupSanta })
-  }
+	handleChange(event) {
+		this.setState({backupSanta: !this.state.backupSanta})
+	}
 
-  render() {
-    return (
-      <div className="userIdPage">
-        <div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
-          <h1>Would you like to be backup Santa this year?</h1>
-        </div>
-        <div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
-          <p align="left">
-            Backup Santas may be called on to do an additional piece of artwork in
-            the event that a recipient does not receive their art by the end of the event.
-            Your help is greatly appreciated in making everyone's Christmas
-            special, thank you! Please remember there is no obligation to do so!
-          </p>
-        </div>
-        <div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
-          <form className="row justify-content-center" style={{ maxWidth: 970 + 'px' }}>
-            <div className="row container justify-content-center">
-              <div className="form-check form-check-inline">
-                <FormGroup>
-                  <FormControlLabel control={<Checkbox onChange={event => this.handleChange(event)} checked={this.state.backupSanta} />} label="Yes, I would like to be a backup Santa this year!" />
-                </FormGroup>
-              </div>
-            </div>
-            <br />
-            <div
-              className="d-flex justify-content-between container navBtns"
-              style={{ maxWidth: 970 + 'px' }}
-            >
-              <div className="col">
-                {/* <button
+	render() {
+		return (
+				<div className="userIdPage">
+					<div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
+						<h1>Would you like to be backup Santa this year?</h1>
+					</div>
+					<div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
+						<p align="left">
+							Backup Santas may be called on to do an additional piece of artwork in
+							the event that a recipient does not receive their art by the end of the event.
+							Your help is greatly appreciated in making everyone's Christmas
+							special, thank you! Please remember there is no obligation to do so!
+						</p>
+					</div>
+					<div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
+						<form className="row justify-content-center" style={{maxWidth: 970 + 'px'}}>
+							<div className="row container justify-content-center">
+								<div className="form-check form-check-inline">
+									<FormGroup>
+										<FormControlLabel control={<Checkbox onChange={event => this.handleChange(event)}
+										                                     checked={this.state.backupSanta}/>}
+										                  label="Yes, I would like to be a backup Santa this year!"/>
+									</FormGroup>
+								</div>
+							</div>
+							<br/>
+							<div
+									className="d-flex justify-content-between container navBtns"
+									style={{maxWidth: 970 + 'px'}}
+							>
+								<div className="col">
+									{/* <button
                   type="button"
                   className="btn btn-outline-danger toggleTierForm"
                 >
                   Back
                 </button> */}
-              </div>
-              <div className="col my-auto">
-                4/5
-              </div>
-              <div className="col d-flex justify-content-end">
-                <NavButton navTo="info" type={"UPDATE_BACKUP_SANTA"} payload={{backupSanta: this.state.backupSanta}}/>
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  }
+								</div>
+								<div className="col my-auto">
+									4/5
+								</div>
+								<div className="col d-flex justify-content-end">
+									<NavButton navTo="info" type={"UPDATE_BACKUP_SANTA"}
+									           payload={{backupSanta: this.state.backupSanta}}/>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+		);
+	}
 }
 
 // const mapStateToProps = state => ({
@@ -72,10 +75,10 @@ class BackupBase extends Component {
 // });
 
 const mapDispatchToProps = dispatch => ({
-  // updateUserInfo: bindActionCreators(updateUserInfo, dispatch)
+	// updateUserInfo: bindActionCreators(updateUserInfo, dispatch)
 });
 
 export const Backup = connect(
-  mapDispatchToProps
+		mapDispatchToProps
 )(BackupBase);
 

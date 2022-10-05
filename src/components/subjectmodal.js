@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Modal from "react-bootstrap/Modal";
 
-import XBBCODE from "../xbbcode.js";
+import XBBCODE from "./xbbcode.js";
 
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import Tooltip from '@mui/material/Tooltip';

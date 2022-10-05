@@ -1,7 +1,7 @@
 import { Component } from "react";
 import { connect } from "react-redux";
 
-import XBBCODE from "../xbbcode.js";
+import XBBCODE from "../components/xbbcode.js";
 
 import TextField from '@mui/material/TextField';
 import NavButton from "../components/navbutton";

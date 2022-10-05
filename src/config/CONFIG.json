@@ -1,0 +1,20 @@
+{
+  "tags": [
+    {
+      "name": "FR Dragon",
+      "id": 1
+    },
+    {
+      "name": "Humanoid",
+      "id": 2
+    },
+    {
+      "name": "Anthropomorphic",
+      "id": 3
+    },
+    {
+      "name": "Feral",
+      "id": 4
+    }
+  ]
+}
