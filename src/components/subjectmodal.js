@@ -169,7 +169,6 @@ export default function SubjectModal(props) {
                                     value={props.info}
                                 ></textarea>
                             </div>
-
                         </div>
                         <div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
                             <p align="center">
