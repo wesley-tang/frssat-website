@@ -123,6 +123,7 @@ function generateCode(state) {
   return code;
 }
 
+// TODO ADD ASTERISK WARNING ON CHANGING THE NO TOUCHY FIELDS
 function generateSubjectText(subjects, noRanking) {
   let subjectsText = "";
 
@@ -130,7 +131,7 @@ function generateSubjectText(subjects, noRanking) {
 
   subjects.forEach(subject => {
     subjectsText += `\n
-${noRanking ? "" : `[b]PRIORITY:[/b] ${getOrdinal(subject.position)}`}
+${noRanking ? "" : `[color=Darkred][b]PRIORITY:[/b][/color] ${getOrdinal(subject.position)}`}
 [b][u]Subject Name[/u][/b]: ${subject.name}
 [b]Reference pictures/links:[/b] `;
 
@@ -141,7 +142,7 @@ ${noRanking ? "" : `[b]PRIORITY:[/b] ${getOrdinal(subject.position)}`}
     }
     else { subjectsText += subject.imageUrl; }
 
-    subjectsText += "\n[b]I would like to receive this type of art for this subject:[/b] ";
+    subjectsText += "\n[color=Darkred][b]I would like to receive this type of art for this subject:[/b][/color] ";
 
     let tags = []
     subject.tags.forEach(tag => {

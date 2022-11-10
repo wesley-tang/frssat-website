@@ -1,0 +1,36 @@
+{
+  "signUpDeadLine": "2022-11-25T00:00:00-08:00",
+  "mainThreadUrl": "https://www1.flightrising.com/forums/cc/3183232",
+  "signupThreadUrl": "https://www1.flightrising.com/forums/cc/3183234",
+  "tags": [
+    {
+      "name": "FR Dragon",
+      "id": 1,
+      "description": "A Flight Rising Dragon is any of the existing breeds on Flight Rising, including baby dragons and ancient breeds, but excluding any dragons not from Flight Rising.",
+      "exampleImageUrl": "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/intermediary/f/cacc90ff-1944-492d-9799-5cb375728271/dd0gsp9-1129f3a2-5725-4bb3-a4c7-4ca7740798d5.jpg/v1/fill/w_774,h_1032,q_70,strp/ren_by_eversnow98_dd0gsp9-pre.jpg",
+      "imageCredit": "Eversnow"
+    },
+    {
+      "name": "Humanoid",
+      "id": 2,
+      "description": "Anything with human proportions that consists primarily of human features. May contain minimal non-human/animalistic features like horns.",
+      "exampleImageUrl": "https://i.imgur.com/fYuMq7X.png",
+      "imageCredit": "Fighting Polygon"
+    },
+    {
+      "name": "Anthropomorphic",
+      "id": 3,
+      "description": "Anything with human proportions but consisting primarily of non-human/animal features, usually at least the head.",
+      "exampleImageUrl": "https://vignette.wikia.nocookie.net/zootopia/images/3/3e/Nick_Sly_Fox_Render.png/revision/latest?cb=20160419235513",
+      "imageCredit": "Disney"
+    },
+    {
+      "name": "Feral",
+      "id": 4,
+      "description": "Anything that does not conform to human proportions (four legged, etc) and lacks human features.\nThis includes non-FR dragons, as well as both real and imagined creatures",
+      "exampleImageUrl": "https://cdn.discordapp.com/attachments/416523883651530752/516647770862387237/unknown.png",
+      "imageCredit": "Lizzi"
+    }
+  ],
+  "maxSubjects": 5
+}

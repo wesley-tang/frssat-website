@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Modal from "react-bootstrap/Modal";
 
-import XBBCODE from "../xbbcode.js";
+import XBBCODE from "./xbbcode.js";
 
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import Tooltip from '@mui/material/Tooltip';
@@ -16,14 +16,6 @@ export default function SubjectModal(props) {
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
-    //    const fancyLabel = (
-    //       <div>
-    //         Not an image link/Do not treat as image URL
-    //         <Tooltip title="Check this if the url is not an image source that ends in .png, .jpg, etc">
-    //           <HelpOutlineIcon size="small" />
-    //         </Tooltip>
-    //       </div>
-    //     )
     let text = "";
     text += `[b][u]Subject Name[/u][/b]: ${props.name}
 [b]Reference pictures/links:[/b] `;
@@ -169,7 +161,6 @@ export default function SubjectModal(props) {
                                     value={props.info}
                                 ></textarea>
                             </div>
-
                         </div>
                         <div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
                             <p align="center">
