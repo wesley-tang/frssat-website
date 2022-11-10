@@ -100,7 +100,7 @@ text-align: right;
 }
 
 * {
-  font-family: "Roboto", sans-serif;
+  font-family: "Avenir", sans-serif;
   text-decoration: none;
   font-weight: 200;
   letter-spacing: 0.08em;
@@ -115,14 +115,13 @@ html {
 }
 
 body {
-  background-color: rgb(232, 247, 249);
+  background-color: rgb(246, 253, 255);
   color: rgb(15, 63, 58);
 }
 
 h1 {
-  font-weight: lighter;
-  font-size: 2.5vw;
-  color: rgb(37, 140, 128);
+  font-weight: normal;
+  color: rgb(30, 121, 111);
   text-align: center;
 
   margin-top: 3%;
@@ -142,8 +141,7 @@ footer {
 }
 
 strong {
-  font-weight: bolder;
-  text-decoration: underline;
+  font-weight: bold;
 }
 
 img {
@@ -152,7 +150,9 @@ img {
 }
 
 p {
+  font-family: "Rubik", sans-serif;
   letter-spacing: 0.02em;
+  margin: auto;
 }
 
 .navigate {
@@ -180,7 +180,7 @@ p {
 
 @media only screen and (max-width: 1440px) {
   h1 {
-    font-size: 3vw;
+    font-size: 200%;
   }
   .field {
     max-width: 60%;
@@ -193,7 +193,7 @@ p {
 
 @media only screen and (max-width: 1080px) {
   h1 {
-    font-size: 4vw;
+    font-size: 200%;
   }
   .field {
     max-width: 70%;
@@ -206,7 +206,10 @@ p {
 
 @media only screen and (max-width: 720px) {
   h1 {
-    font-size: 6vw;
+    font-size: 180%;
+  }
+  h2 {
+    font-size: 150%;
   }
   .field {
     max-width: 80%;
@@ -219,7 +222,7 @@ p {
 
 @media only screen and (max-width: 480px) {
   h1 {
-    font-size: 8vw;
+    /*font-size: 350%;*/
   }
   .field {
     max-width: 100%;

@@ -1,4 +1,7 @@
 {
+  "signUpDeadLine": "2022-11-25T00:00:00-08:00",
+  "mainThreadUrl": "https://www1.flightrising.com/forums/cc/3183232",
+  "signupThreadUrl": "https://www1.flightrising.com/forums/cc/3183234",
   "tags": [
     {
       "name": "FR Dragon",
@@ -28,5 +31,6 @@
       "exampleImageUrl": "https://cdn.discordapp.com/attachments/416523883651530752/516647770862387237/unknown.png",
       "imageCredit": "Lizzi"
     }
-  ]
+  ],
+  "maxSubjects": 3
 }
