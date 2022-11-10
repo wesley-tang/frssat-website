@@ -8,7 +8,17 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 class BackupBase extends Component {
 	constructor(props) {
 		super(props);
-		this.state = {backupSanta: false};
+		let backupState = null;
+		try {
+			backupState = JSON.parse(localStorage.getItem("backupState"));
+		} catch (e) {
+			console.warn("FAILED TO LOAD FROM LOCAL STORAGE.")
+		}
+		if (backupState === null) {
+			this.state = {backupSanta: false};
+		} else {
+			this.state = backupState;
+		}
 	}
 
 
@@ -20,7 +30,7 @@ class BackupBase extends Component {
 		return (
 				<div className="userIdPage">
 					<div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
-						<h1>Would you like to be backup Santa this year?</h1>
+						<h1><strong>WOULD YOU LIKE TO BE BACKUP SANTA THIS YEAR?</strong></h1>
 					</div>
 					<div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
 						<p align="left">
@@ -46,20 +56,25 @@ class BackupBase extends Component {
 									className="d-flex justify-content-between container navBtns"
 									style={{maxWidth: 970 + 'px'}}
 							>
-								<div className="col">
-									{/* <button
-                  type="button"
-                  className="btn btn-outline-danger toggleTierForm"
-                >
-                  Back
-                </button> */}
+								<div className="col d-flex justify-content-start">
+									<NavButton
+											navTo="tier"
+											type={"UPDATE_BACKUP_SANTA"}
+											pageStateKey={"backupState"}
+											pageState={this.state}
+											text={"Back"}
+											payload={{backupSanta: this.state.backupSanta}}/>
 								</div>
 								<div className="col my-auto">
 									4/5
 								</div>
 								<div className="col d-flex justify-content-end">
-									<NavButton navTo="info" type={"UPDATE_BACKUP_SANTA"}
-									           payload={{backupSanta: this.state.backupSanta}}/>
+									<NavButton
+											navTo="info"
+											type={"UPDATE_BACKUP_SANTA"}
+											pageStateKey={"backupState"}
+											pageState={this.state}
+											payload={{backupSanta: this.state.backupSanta}}/>
 								</div>
 							</div>
 						</form>

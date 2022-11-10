@@ -1,6 +1,6 @@
 import {useNavigate} from "react-router-dom";
 
-import CONFIG from "../config/CONFIG.json"
+import CONFIG from "../config/CONFIG.json";
 
 export default function Home() {
 	const navigate = useNavigate();
@@ -26,7 +26,7 @@ export default function Home() {
 				<div className="container-fluid" style={{paddingTop: 2 + '%'}}>
 					<p style={{maxWidth: 750 + 'px'}}>
 						This site is designed to guide you through the sign up process before
-						providing you with the post to copy paste onto the FR forums! Progress is saved between pages.
+						providing you with the post to copy paste onto the FR forums! Progress is saved between pages on button press.
 						<br/><br/>
 						Don't know what that is? Find out in our&nbsp;
 						<a href={CONFIG.mainThreadUrl}>
@@ -37,7 +37,7 @@ export default function Home() {
 						>sign-up thread</a>.
 						<br/> <strong>SIGN-UPS CLOSE {new Date(CONFIG.signUpDeadLine).toLocaleString('en-US', {timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone})}</strong>
 						<br/><br/>
-						No personal data is collected or stored. We are neither affiliated with nor endorsed by
+						No personal data is collected or stored (local storage is used to retain form data). We are neither affiliated with nor endorsed by
 						Stormlight Workshop LLC.
 						<br/>
 						<br/>

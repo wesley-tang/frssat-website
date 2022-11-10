@@ -27,7 +27,7 @@ export class SubjectCard extends Component {
 	}
 
 	renderDescription() {
-		if (this.props.subject.imageUrl !== undefined && (this.props.subject.imageUrl.endsWith("png") || this.props.subject.imageUrl.endsWith("jpg") || this.props.subject.imageUrl.endsWith("gift"))) {
+		if (this.props.subject.imageUrl !== undefined && (this.props.subject.imageUrl.endsWith("png") || this.props.subject.imageUrl.endsWith("jpg") || this.props.subject.imageUrl.endsWith("gif"))) {
 			return null;
 		}
 		return (
@@ -38,7 +38,7 @@ export class SubjectCard extends Component {
 	}
 
 	getSx() {
-		if (this.props.subject.imageUrl === undefined || !(this.props.subject.imageUrl.endsWith("png") || this.props.subject.imageUrl.endsWith("jpg") || this.props.subject.imageUrl.endsWith("gift"))) {
+		if (this.props.subject.imageUrl === undefined || !(this.props.subject.imageUrl.endsWith("png") || this.props.subject.imageUrl.endsWith("jpg") || this.props.subject.imageUrl.endsWith("gif"))) {
 			return {sx: {height: (this.props.noRanking ? 100 : 70) + '%'}}
 		}
 	}

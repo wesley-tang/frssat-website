@@ -20,19 +20,37 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 class SubjectsBase extends Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			subjects:
-					[],
-			noRanking: false,
-			editing: false,
-			usableTags: CONFIG.tags,
-			subjectName: "",
-			subjectTags: [],
-			subjectImageUrl: "",
-			subjectInfo: "",
-			subjectPosition: -1,
-			subjectHasImage: false
-		};
+		let subjectState = null;
+		try {
+			subjectState = JSON.parse(localStorage.getItem("subjectState"));
+		} catch (e) {
+			console.warn("FAILED TO LOAD FROM LOCAL STORAGE.")
+		}
+		if (subjectState === null) {
+			this.state = {
+				subjects:
+						[],
+				noRanking: false,
+				editing: false,
+				usableTags: CONFIG.tags,
+				subjectName: "",
+				subjectTags: [],
+				subjectImageUrl: "",
+				subjectInfo: "",
+				subjectPosition: -1,
+				subjectHasImage: false
+			};
+		} else {
+			this.state = subjectState;
+		}
+	}
+
+	localSave() {
+		try {
+			localStorage.setItem("subjectState", JSON.stringify(this.state));
+		} catch (e) {
+			console.warn("FAILED TO SAVE STATE. PROGRESS NOT SAVED.")
+		}
 	}
 
 	//TODO FIX THE WIDTH NOT HAVING A MARGIN
@@ -117,6 +135,7 @@ class SubjectsBase extends Component {
 	handleClose() {
 		this.resetCurrentSubject();
 		this.setState({editing: false});
+		this.localSave()
 	}
 
 	handleSave() {
@@ -203,7 +222,7 @@ class SubjectsBase extends Component {
 					/>)
 		})
 
-		if (this.state.subjects.length < 5) {
+		if (this.state.subjects.length < CONFIG.maxSubjects) {
 			cards.push(
 					<Card sx={{minWidth: 150, maxWidth: 225, minHeight: 200}}>
 						<CardActionArea sx={{height: 100 + '%'}} onClick={() => {
@@ -252,18 +271,17 @@ class SubjectsBase extends Component {
 							}}
 					/>
 					<div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
-						<h1>Please add the subjects you want drawn</h1>
+						<h1><strong>ADD THE SUBJECTS YOU WANT DRAWN</strong></h1>
 					</div>
 					<div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
-						<div className="row justify-content-center">
+						<div className="row justify-content-center" style={{padding: '2%'}}>
 							<p align="left">
 								Please fill in the subjects that you wish to have drawn for this event. Click
-								on the arrows to increase or decrease the priority of each subject, from 1st being your most
-								wanted to
-								5th being your least. You can disable ranking if you don't care or have no
-								preference for which subject you want drawn. You may have up to 5 subjects.
+								on the arrows to increase or decrease the priority of each subject, from <strong>1 being your most
+								wanted to {CONFIG.maxSubjects} being your least</strong>. You can disable ranking if you don't care or have no
+								preference for which subject you want drawn. You may have up to {CONFIG.maxSubjects} subjects.
 							</p>
-							<p align="center">
+							<p align="center" style={{marginTop: '5%', marginBottom: '0%'}}>
 								Tap on a card to edit it!
 							</p>
 						</div>
@@ -292,14 +310,25 @@ class SubjectsBase extends Component {
 									className="row navBtns container justify-content-center"
 									style={{maxWidth: 970 + 'px'}}
 							>
-								<div className="col">
+								<div className="col d-flex justify-content-start">
+									<NavButton
+											navTo="preferences"
+											type={"UPDATE_SUBJECTS"}
+											pageStateKey={"subjectState"}
+											pageState={this.state}
+											text={"Back"}
+											payload={{subjects: this.state.subjects, noRanking: this.state.noRanking}}/>
 								</div>
 								<div className="col my-auto">
 									2/5
 								</div>
 								<div className="col d-flex justify-content-end">
-									<NavButton navTo="tier" type={"UPDATE_SUBJECTS"}
-									           payload={{subjects: this.state.subjects, noRanking: this.state.noRanking}}/>
+									<NavButton
+											navTo="tier"
+											type={"UPDATE_SUBJECTS"}
+											pageStateKey={"subjectState"}
+											pageState={this.state}
+											payload={{subjects: this.state.subjects, noRanking: this.state.noRanking}}/>
 								</div>
 							</div>
 						</div>

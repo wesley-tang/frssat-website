@@ -15,11 +15,21 @@ import Button from '@mui/material/Button';
 class TierBase extends Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			tier: "a",
-			openTierA: false,
-			openTierB: false
-		};
+		let tierState = null;
+		try {
+			tierState = JSON.parse(localStorage.getItem("tierState"));
+		} catch (e) {
+			console.warn("FAILED TO LOAD FROM LOCAL STORAGE.")
+		}
+		if (tierState === null) {
+			this.state = {
+				tier: "a",
+				openTierA: false,
+				openTierB: false
+			};
+		} else {
+			this.state = tierState;
+		}
 	}
 
 	handleModalClick(modalToOpen) {
@@ -111,26 +121,26 @@ class TierBase extends Component {
 						</Modal.Body>
 					</Modal>
 					<div class="container-fluid" style={{maxWidth: 970 + 'px'}}>
-						<h1>How much time will you commit to your drawing this year?</h1>
+						<h1><strong>SPECIFY HOW MUCH TIME YOU WILL COMMIT TO YOUR DRAWING</strong></h1>
 					</div>
 					<div class="container-fluid" style={{maxWidth: 970 + 'px'}}>
 						<p align="left">
 							To alleviate the pressure on those with limited time, and to reassure
 							those that are planning to devote lots of time, there will be two
-							tiers. <strong> Tiers are NOT an indicator of <em>quality</em>, only time.</strong>&nbsp;
+							tiers. <strong> Tiers are NOT an indicator of QUALITY, only TIME.</strong>&nbsp;
 							We expect that you put forth your best effort into your art.<br/><br/>
-							<strong>Tier A</strong>: You will be expected to
-							complete a full art piece. Show your recipient what you can do, whether
-							it be through beautifully done shading, coloring, or both! There is no
-							requirement on doing a fullbody vs doing just a headshot, but we
+							<strong>Tier A</strong><br/>
+							You will be expected to complete a full art piece. Show your recipient what you can do, whether
+							it be through beautifully done shading, colouring, or both! There is no
+							requirement on doing a full-body vs doing just a headshot, but we
 							expect your best effort in terms of technique.
 							<br/>
 							<Button onClick={() => {
 								this.handleModalClick("openTierA")
 							}} variant="text">Tier A Examples</Button>
 							<br/><br/>
-							<strong>Tier B</strong>: This low-stress tier is perfect for beginners
-							or those who may not have a lot of time to invest in the event. For
+							<strong>Tier B</strong><br/>
+							This low-stress tier is perfect for beginners or those who may not have a lot of time to invest in the event. For
 							this tier, a basic sketch is all that is expected! If you would like
 							to add other additions like quick coloring or shading, then you can do
 							so as well.
@@ -161,19 +171,25 @@ class TierBase extends Component {
 									class="d-flex justify-content-between container navBtns"
 									style={{maxWidth: 970 + 'px'}}
 							>
-								<div class="col">
-									{/* <button
-                type="button"
-                class="btn btn-outline-danger toggleRecPrefForm"
-              >
-                Back
-              </button> */}
+								<div className="col d-flex justify-content-start">
+									<NavButton
+											navTo="subjects"
+											type={"UPDATE_TIER"}
+											pageStateKey={"tierState"}
+											pageState={this.state}
+											text={"Back"}
+											payload={this.state}/>
 								</div>
 								<div class="col my-auto">
 									3/5
 								</div>
 								<div class="col d-flex justify-content-end">
-									<NavButton navTo="backup" type={"UPDATE_TIER"} payload={this.state}/>
+									<NavButton
+											navTo="backup"
+											type={"UPDATE_TIER"}
+											pageStateKey={"tierState"}
+											pageState={this.state}
+											payload={this.state}/>
 								</div>
 							</div>
 						</form>

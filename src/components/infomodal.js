@@ -12,14 +12,17 @@ export default function InfoModal(props) {
 					</IconButton>
 				</Modal.Header>
 				<Modal.Body>
-					<p>{props.tag.description}
-						<br/>
-						<br/>
-						Example:
-					</p>
-					<img style={{padding: '3%'}} src={props.tag.exampleImageUrl} alt={props.tag.name + "example"}/>
-					<br/>
-					<small>Credit: {props.tag.imageCredit}</small>
+					<p>{props.tag.description ? props.tag.description : <em>No description provided</em>}</p>
+					{props.tag.exampleImageUrl !== undefined &&
+						<p>
+							<br/>
+							Example:
+							<img style={{padding: '3%', display: 'block'}} class="center" src={props.tag.exampleImageUrl} alt={props.tag.name + "example image"}/>
+							{props.tag.imageCredit !== undefined &&
+								<small>Credit: {props.tag.imageCredit}</small>
+							}
+						</p>
+					}
 				</Modal.Body>
 			</Modal>
 	);

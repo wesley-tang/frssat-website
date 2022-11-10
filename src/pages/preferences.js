@@ -15,14 +15,24 @@ import CONFIG from "../config/CONFIG.json"
 class PreferencesBase extends Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			usableTags: CONFIG.tags,
-			tagsInTier: {
-				prefer: [],
-				willing: [],
-				banned: []
-			}
-		};
+		let prefState = null;
+		try {
+			prefState = JSON.parse(localStorage.getItem("prefState"));
+		} catch (e) {
+			console.warn("FAILED TO LOAD FROM LOCAL STORAGE.")
+		}
+		if (prefState === null) {
+			this.state = {
+				usableTags: CONFIG.tags,
+				tagsInTier: {
+					prefer: [],
+					willing: [],
+					banned: []
+				}
+			};
+		} else {
+			this.state = prefState;
+		}
 
 		CONFIG.tags.forEach(tag => {
 			// eslint-disable-next-line react/no-direct-mutation-state
@@ -108,15 +118,16 @@ class PreferencesBase extends Component {
 
 
 					<div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
-						<h1>Please rank your <strong>drawing preferences</strong>.</h1>
+						<h1><strong>RANK YOUR DRAWING PREFERENCES</strong></h1>
 					</div>
 					<div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
-						<p align="left">
-							Please fill in your drawing preferences from the options below.
-							&nbsp;<strong>Any unassigned tags will be automatically filled into "Will not Draw"</strong>.
+						<p align="center">
+							Please fill in your drawing preferences from the options below.<br/>
+							Any unassigned tags will be automatically filled into WILL NOT DRAW.
 						</p>
+						<br/>
 						<p>Click on the tags for definitions and examples.</p>
-						<div style={{marginTop: 0, marginBottom: 30, paddingTop: 0}} className="row justify-content-center">
+						<div style={{marginTop: 1 + '%', marginBottom: 30, paddingTop: 0}} className="row justify-content-center">
 							<Stack spacing={1} direction={{xs: 'column', sm: 'row'}}>
 								{this.renderTagChips(CONFIG.tags)}
 							</Stack>
@@ -138,7 +149,7 @@ class PreferencesBase extends Component {
 										}}/>
 							</div>
 							<div className="row justify-content-center"
-							     style={{marginTop: 2.5 + '%', marginBottom: 2.5 + '%'}}>
+							     style={{marginTop: 1.2 + '%', marginBottom: 1.2 + '%'}}>
 								<AutocompleteInput
 										title="Willing to Draw"
 										tags={this.state.usableTags}
@@ -167,22 +178,32 @@ class PreferencesBase extends Component {
 
 							>
 								<div className="col">
-									{/* <button
-                  type="button"
-                  className="btn btn-outline-danger"
-                  id="returnToUserAndId"
-                >
-                  Back
-                </button> */}
+									<div className="col d-flex justify-content-start">
+										<NavButton
+												navTo=""
+												type={"UPDATE_PREFERENCES"}
+												pageStateKey={"prefState"}
+												pageState={this.state}
+												text={"Back"}
+												payload={{
+											prefsByTier: this.state.tagsInTier,
+											remainingTags: this.state.usableTags
+										}}/>
+									</div>
 								</div>
 								<div className="col my-auto">
 									1/5
 								</div>
 								<div className="col d-flex justify-content-end">
-									<NavButton navTo="subjects" type={"UPDATE_PREFERENCES"} payload={{
-										prefsByTier: this.state.tagsInTier,
-										remainingTags: this.state.usableTags
-									}}/>
+									<NavButton
+											navTo="subjects"
+											type={"UPDATE_PREFERENCES"}
+											pageStateKey={"prefState"}
+											pageState={this.state}
+											payload={{
+												prefsByTier: this.state.tagsInTier,
+												remainingTags: this.state.usableTags,
+											}}/>
 								</div>
 							</div>
 						</form>

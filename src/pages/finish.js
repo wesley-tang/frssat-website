@@ -6,6 +6,8 @@ import {loadFinalText, reset} from "../state/formState";
 import NavButton from "../components/navbutton";
 import Button from '@mui/material/Button';
 
+import CONFIG from "../config/CONFIG.json";
+
 class FinishBase extends Component {
 	componentWillMount() {
 		this.props.loadFinalText();
@@ -47,16 +49,15 @@ class FinishBase extends Component {
 		return (
 				<div className="finishPage">
 					<div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
-						<h1>You're all set!</h1>
+						<h1><strong>YOU'RE ALL SET!</strong></h1>
 					</div>
-					<div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
+					<div className="container-fluid" style={{maxWidth: 970 + 'px', marginBottom: 2 + '%'}}>
 						<p align="left">
 							Copy your completed form below and paste it to the forums on our sign
 							up thread&nbsp;
-							<a href="https://www1.flightrising.com/forums/cc/3079245">HERE</a>,
-							and make any adjustments necessary to <strong>info fields only</strong>. If you need to change
-							anything else, please
-							fill out the form again. (Please <strong> do not change the
+							<a href={CONFIG.signupThreadUrl}>HERE</a>
+							and make any adjustments necessary. If you need to edit fields in red, please redo the form.<br/>
+							(Please <strong> do not change the
 							the code at the bottom</strong>)
 						</p>
 					</div>
@@ -68,24 +69,33 @@ class FinishBase extends Component {
 		            className="md-textarea form-control"
 		            rows="10"
 		            onClick={event => this.select(event)}
-            ></textarea>
+            />
 						</div>
 						<div className="row justify-content-center">
 							<Button variant="contained" onClick={event => this.handleClick(event)}>Copy</Button>
 						</div>
-						<div class="d-flex justify-content-center" style={{marginTop: 1 + '%'}}>
+						<div class="d-flex justify-content-center" style={{marginTop: 8 + '%'}}>
 							<div className="col d-flex justify-content-start">
-								<NavButton navTo="preferences" type={"RESET"} payload={{}} text="RESET"/>
+								<NavButton
+										navTo="info"
+										type={""}
+										payload={{}}
+										text="Back"/>
 							</div>
 							<div className="col d-flex justify-content-end">
-								<a href="https://www1.flightrising.com/forums/cc/3079245">
+								<NavButton
+										navTo=""
+										type={"RESET"}
+										payload={{}}
+										text="RESET"/>
+								<a href={CONFIG.signupThreadUrl} style={{marginLeft: 6 + '%'}}>
 									<button
 											id="exitBtn"
 											type="button"
 											class="btn btn-success"
 											disabled={this.state.dirty}
 									>
-										To the Forums
+										Forums
 									</button>
 								</a>
 							</div>
