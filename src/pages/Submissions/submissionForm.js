@@ -275,7 +275,7 @@ class SubmissionBase extends Component {
 												{this.state.validImageFileType && this.state.imageUrl !== "" ? (
 														<div className="row justify-content-center">
 															<img src={this.state.imageUrl}
-															     alt="Subject Reference (If you're seeing this alt text, it may be that your link is broken. Make sure the image works or else it will not display.)"/>
+															     alt="Subject Reference (If you're seeing this alt text, it may be that your link is broken. Make sure it works or else it will not display.)"/>
 														</div>
 												) : undefined}
 											</div>

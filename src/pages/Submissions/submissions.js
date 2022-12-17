@@ -8,9 +8,9 @@ export default function Submissions() {
 		navigate("/submissionForm");
 	}
 
-	function handleEditSubmissionClick() {
-		navigate("/editSubmission");
-	}
+	// function handleEditSubmissionClick() {
+	// 	navigate("/editSubmission");
+	// }
 
 	return (
 			<div className="submissionsPage">
