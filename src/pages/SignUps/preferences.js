@@ -5,11 +5,12 @@ import Stack from '@mui/material/Stack';
 import Chip from '@mui/material/Chip';
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 
-import NavButton from "../components/navbutton";
-import AutocompleteInput from "../components/autocompleteinput";
-import InfoModal from "../components/infomodal";
 
-import CONFIG from "../config/CONFIG.json"
+import NavButton from "../../components/navbutton";
+import AutocompleteInput from "../../components/autocompleteinput";
+import InfoModal from "../../components/infomodal";
+
+import CONFIG from "../../config/CONFIG.json"
 
 
 class PreferencesBase extends Component {

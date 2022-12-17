@@ -1,6 +1,6 @@
 import {useNavigate} from "react-router-dom";
 
-import CONFIG from "../config/CONFIG.json";
+import CONFIG from "../../config/CONFIG.json";
 
 export default function Home() {
 	const navigate = useNavigate();

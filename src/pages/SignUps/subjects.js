@@ -1,11 +1,11 @@
 import {Component} from "react";
 import {connect} from "react-redux";
 
-import NavButton from "../components/navbutton";
-import SubjectModal from "../components/subjectmodal";
-import {SubjectCard} from "../components/subjectcard";
+import NavButton from "../../components/navbutton";
+import SubjectModal from "../../components/subjectmodal";
+import {SubjectCard} from "../../components/subjectcard";
 
-import CONFIG from "../config/CONFIG.json"
+import CONFIG from "../../config/CONFIG.json"
 
 import Stack from '@mui/material/Stack';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
@@ -85,7 +85,7 @@ class SubjectsBase extends Component {
 	}
 
 	handleChange() {
-		this.setState({noRanking: !this.state.noRanking})
+		this.setState({noRanking: !this.state.noRanking});
 	}
 
 	updateNameInput(event) {

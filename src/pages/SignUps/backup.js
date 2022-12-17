@@ -1,6 +1,6 @@
 import {Component} from "react";
 import {connect} from "react-redux";
-import NavButton from "../components/navbutton";
+import NavButton from "../../components/navbutton";
 import Checkbox from '@mui/material/Checkbox';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
