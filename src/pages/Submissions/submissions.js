@@ -26,6 +26,7 @@ export default function Submissions() {
 				<div className="row justify-content-center">
 					<div className="col-md-auto">
 						<button
+								disabled
 								type="button"
 								className="btn btn-primary"
 								onClick={handleNewSubmissionClick}
