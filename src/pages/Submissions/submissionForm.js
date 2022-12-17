@@ -27,8 +27,6 @@ import NavButton from "../../components/navbutton";
 
 const RECIPIENT_FORMULA = "=VLOOKUP(\"user\", matchups!A2:B90, 2, false)";
 const ACCEPTED_FILE_TYPES = ["apng", "avif", "gif", "jpeg", "jpg", "png", "svg", "webp"];
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
-const CLIENT_EMAIL = process.env.CLIENT_EMAIL;
 
 class SubmissionBase extends Component {
 
@@ -42,8 +40,8 @@ class SubmissionBase extends Component {
 		console.log(process.env.TEST)
 		CONFIG.tags.forEach((tag) => this.tags.push(tag["name"]))
 		this.doc.useServiceAccountAuth({
-			"private_key": PRIVATE_KEY,
-			"client_email": CLIENT_EMAIL
+			"private_key": "-----BEGIN PRIVATE KEY-----\\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDBRiL40+8syZn3\\numufOTGaMOx67d9B9qYFgCsrB0kqAHPZi7UTMqou4HNhfS6Jl4j8RK8OIXMR+cRu\\nuuCRA7XjmfcaeQo0A++eB1FC5A3IG3ZSEzlEB0sP7GTrnWLVTxYunIjU0wuHXeyG\\nKyKKFLJ4lexCHpDJ7yMwTRIxYZmUHf5eTV4+XASI8Yg5txPQWXgQGHqWoRGMVzC4\\nM4U/Xd8DFcO8fctloy77jPXrcBYFU7HpTpzSGCuPguWkid720zcO4p4tU56+H1o6\\nKAmG0iCiZuvslTXzC/+/Hkj9uSzLySqH8Sm1jn8/bsYL+WWD0i0AQiyxhB957GEy\\nOgz0tRcTAgMBAAECggEAKluPsI7qHRu11bgSfBvRxiQwv6RASLmgmxYC3/RB0aW1\\nvhjDP4jcCVgBkX0Y5OjECd2Xq/YivO7LYSUtsDpq8427vR6H4Ox36F9cLNfEOXXj\\nUYuLAmDCz6OUXpronS0vBFokFtiF703jV2g+sppkns7kr3z5aHgzcxOBCDeGrBIh\\nF3mwHsun4/BA5UzJCHXszoT6ctfiY31YFsv+kDi6V07FwZU5TBKpyyP/NbNZi+rG\\nnMXeh8+RDEl4VccdP/ZGBobtKk0aDalhxI+RJCIF4e+wdy3uGplSXcAh44JHe3lY\\np5zwOGeDpKSO7e3t0f8CizdtffzCCr4LKOVM49drQQKBgQDq4lOvp/2vEIJYzGbU\\n9GuDS+IX67Omf66g9lH+kdjjX7XcfGqmVcntxc/iuzgI0OfQ3sjKYPH5ccpmExPq\\n9x94R2eiT4i3tncoA8CnNQsliCoaGsxDQkFx2zBzYbhoBxoicRuTYS+SwFnOy6Y/\\nGNxPM77iYpy5SyColZJpmNvB4QKBgQDSpi97EZGr3ljR01deeUba98MV1VwCYfwS\\nj+JknPTHvDyKS0SySmZZOMW2kIufNfLP2XIjsALfOKSUCwcAOXWBaoyUyeD/U+F0\\npFn8bWswbm0LBIWIwXLc5qWsVh0gR2elWOnfmJ86/RdKXymANt15YHeDmoZd+ZvU\\nuIXQE1rfcwKBgQDlzGQ/uMVzH13HbsM0maUOIZGkAZAT11uMUzFJNHvTiHIusvLM\\npaYXoK6QjsZ1qZ0DNtOPXGWgvHlegE++U+RQEtwLanDB/Bx745/6duTe5Wb7fzhU\\nnV/V+rJeUD7QWBJzm+F0wWJ/2vyCW6/cj4ALZP7eEchvaFcdWKiT818dQQKBgDwB\\nhTMMrS+Fdk3HY3MRHyMPQy58CerP2Mu82yQIJh6ju6c1i8syMHeoGYJJKMzgxFt7\\nOO17nUXTT+awQX1J4PRN0uArpgF19pqQmuWykb9JJZzm29c6LCtLNNSj70YbsSXD\\n71N3mZxnLnRMKXlRp8OEvGbr5OzuRvrQ2aWNbeyLAoGAN4vvd5PCffs/zPfqdF6n\\nCS9FxHMBQ7KecGW8ZDFdD/LkMrm58c4eK8JJDT+bGT6w98Jpaq6hS0ldMlM4Isve\\nT/0QkvP01HTJpHLVHK7Zo+/MJrLEakXBX7VrKFaeh5eyhiH/DvLZUqmX8Y/U6frx\\nRtRqSLoAdtN9NW2OI0wsIA0=\\n-----END PRIVATE KEY-----\\n -----END PRIVATE KEY-----",
+			"client_email": "frssat@frssat.iam.gserviceaccount.com"
 		}).then(() => {
 			this.doc.loadInfo().then(() => {
 				this.getPromisedArrayFromSheetAndColumn("participants", "participants").then(res => {
