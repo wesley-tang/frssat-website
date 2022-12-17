@@ -6,14 +6,15 @@ import "./css/App.css";
 import {Route, Routes, BrowserRouter as Router} from "react-router-dom";
 import {formState} from "./state/formState";
 
-import Home from "./pages/home";
-import {UserId} from "./pages/userid";
-import {Preferences} from "./pages/preferences";
-import {Subjects} from "./pages/subjects";
-import {Tier} from "./pages/tier";
-import {Backup} from "./pages/backup";
-import {Info} from "./pages/info";
-import {Finish} from "./pages/finish";
+import Home from "./pages/SignUps/home";
+import {Preferences} from "./pages/SignUps/preferences";
+import {Subjects} from "./pages/SignUps/subjects";
+import {Tier} from "./pages/SignUps/tier";
+import {Backup} from "./pages/SignUps/backup";
+import {Info} from "./pages/SignUps/info";
+import {Finish} from "./pages/SignUps/finish";
+import Submissions from "./pages/Submissions/submissions";
+import {Submission} from "./pages/Submissions/submissionForm";
 
 const store = createStore(formState, applyMiddleware(thunk));
 
@@ -24,13 +25,14 @@ function App() {
 					<div className="App">
 						<Routes>
 							<Route path="/" element={<Home/>}/>
-							<Route path="/userid" element={<UserId/>}/>
 							<Route path="/preferences" element={<Preferences/>}/>
 							<Route path="/subjects" element={<Subjects/>}/>
 							<Route path="/tier" element={<Tier/>}/>
 							<Route path="/backup" element={<Backup/>}/>
 							<Route path="/info" element={<Info/>}/>
 							<Route path="/finish" element={<Finish/>}/>
+							<Route path="/submissions" element={<Submissions/>}/>
+							<Route path="/submissionForm" element={<Submission/>}/>
 						</Routes>
 					</div>
 				</Router>

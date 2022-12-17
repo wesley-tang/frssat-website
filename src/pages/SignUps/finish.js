@@ -1,12 +1,12 @@
 import React, {Component} from "react";
 import {connect} from "react-redux";
 import {bindActionCreators} from "redux";
-import {loadFinalText, reset} from "../state/formState";
+import {loadFinalText, reset} from "../../state/formState";
 
-import NavButton from "../components/navbutton";
+import NavButton from "../../components/navbutton";
 import Button from '@mui/material/Button';
 
-import CONFIG from "../config/CONFIG.json";
+import CONFIG from "../../config/CONFIG.json";
 
 class FinishBase extends Component {
 	componentWillMount() {

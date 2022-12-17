@@ -1,6 +1,6 @@
 import {Component} from "react";
 import {connect} from "react-redux";
-import NavButton from "../components/navbutton";
+import NavButton from "../../components/navbutton";
 
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';

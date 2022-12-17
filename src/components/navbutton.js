@@ -27,6 +27,7 @@ export default function NavButton(props) {
 						onClick={handleClick}
 						variant={props.text === undefined ? "contained" : "outlined"}
 						color={props.text === undefined ? "success" : "error"}
+						{...props.passThrough || {}}
 				>
 					{props.text === undefined ? "Next" : props.text}
 				</Button>
