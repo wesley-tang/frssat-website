@@ -6,7 +6,7 @@ import "./css/App.css";
 import {Route, Routes, BrowserRouter as Router} from "react-router-dom";
 import {formState} from "./state/formState";
 
-import Home from "./pages/SignUps/home";
+// import Home from "./pages/SignUps/home";
 import {Preferences} from "./pages/SignUps/preferences";
 import {Subjects} from "./pages/SignUps/subjects";
 import {Tier} from "./pages/SignUps/tier";
@@ -24,14 +24,14 @@ function App() {
 				<Router>
 					<div className="App">
 						<Routes>
-							<Route path="/" element={<Home/>}/>
+							{/*<Route path="/" element={<Home/>}/>*/}
 							<Route path="/preferences" element={<Preferences/>}/>
 							<Route path="/subjects" element={<Subjects/>}/>
 							<Route path="/tier" element={<Tier/>}/>
 							<Route path="/backup" element={<Backup/>}/>
 							<Route path="/info" element={<Info/>}/>
 							<Route path="/finish" element={<Finish/>}/>
-							<Route path="/submissions" element={<Submissions/>}/>
+							<Route path="/" element={<Submissions/>}/>
 							<Route path="/submissionForm" element={<Submission/>}/>
 						</Routes>
 					</div>
