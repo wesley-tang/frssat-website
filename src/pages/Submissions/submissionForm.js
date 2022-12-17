@@ -397,7 +397,7 @@ class SubmissionBase extends Component {
 					</DialogContent>
 					<DialogActions>
 						{this.state.submitted ? (<NavButton
-								navTo="submissions"
+								navTo=""
 								type={""}
 								pageStateKey={"submissionState"}
 								pageState={this.state}
