@@ -27,6 +27,8 @@ import NavButton from "../../components/navbutton";
 
 const RECIPIENT_FORMULA = "=VLOOKUP(\"user\", matchups!A2:B90, 2, false)";
 const ACCEPTED_FILE_TYPES = ["apng", "avif", "gif", "jpeg", "jpg", "png", "svg", "webp"];
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const CLIENT_EMAIL = process.env.CLIENT_EMAIL;
 
 class SubmissionBase extends Component {
 
@@ -37,10 +39,11 @@ class SubmissionBase extends Component {
 
 	constructor(props) {
 		super(props);
+		console.log(process.env.TEST)
 		CONFIG.tags.forEach((tag) => this.tags.push(tag["name"]))
 		this.doc.useServiceAccountAuth({
-			"private_key": process.env.PRIVATE_KEY,
-			"client_email": process.env.CLIENT_EMAIL
+			"private_key": PRIVATE_KEY,
+			"client_email": CLIENT_EMAIL
 		}).then(() => {
 			this.doc.loadInfo().then(() => {
 				this.getPromisedArrayFromSheetAndColumn("participants", "participants").then(res => {
