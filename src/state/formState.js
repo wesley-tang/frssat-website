@@ -10,7 +10,8 @@ const INITIAL_STATE = {
   noRanking: false,
   highTier: true,
   backupSanta: false,
-  additionalInfo: ""
+  additionalInfo: "",
+  submissionUuid: ""
 };
 
 export function updateUserInfo(userInfo) {
@@ -40,6 +41,8 @@ export function reset() {
 
 export function formState(state = INITIAL_STATE, action) {
   switch (action.type) {
+    case "SET_UUID":
+      return { ...state, uuid: action.payload.uuid};
     case "UPDATE_USER_INFO":
       return { ...state, username: action.payload.username, userid: action.payload.userid };
     case "UPDATE_PREFERENCES":
@@ -123,7 +126,6 @@ function generateCode(state) {
   return code;
 }
 
-// TODO ADD ASTERISK WARNING ON CHANGING THE NO TOUCHY FIELDS
 function generateSubjectText(subjects, noRanking) {
   let subjectsText = "";
 
