@@ -2,8 +2,8 @@ import * as React from 'react';
 import {Component} from "react";
 import {connect} from "react-redux";
 
-import {GoogleSpreadsheet} from "google-spreadsheet";
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
+import axios from 'axios';
 
 import Checkbox from '@mui/material/Checkbox';
 import FormGroup from '@mui/material/FormGroup';
@@ -30,29 +30,21 @@ const ACCEPTED_FILE_TYPES = ["apng", "avif", "gif", "jpeg", "jpg", "png", "svg",
 
 class SubmissionBase extends Component {
 
-	doc = new GoogleSpreadsheet("1eE2j4gCJzS2chf7aFY7ywlDC6htbcOs61qKNpsEPV1U");
-
 	participants = [];
 	tags = [];
 
 	constructor(props) {
 		super(props);
-		CONFIG.tags.forEach((tag) => this.tags.push(tag["name"]))
-		this.doc.useServiceAccountAuth({
-			"private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDBRiL40+8syZn3\numufOTGaMOx67d9B9qYFgCsrB0kqAHPZi7UTMqou4HNhfS6Jl4j8RK8OIXMR+cRu\nuuCRA7XjmfcaeQo0A++eB1FC5A3IG3ZSEzlEB0sP7GTrnWLVTxYunIjU0wuHXeyG\nKyKKFLJ4lexCHpDJ7yMwTRIxYZmUHf5eTV4+XASI8Yg5txPQWXgQGHqWoRGMVzC4\nM4U/Xd8DFcO8fctloy77jPXrcBYFU7HpTpzSGCuPguWkid720zcO4p4tU56+H1o6\nKAmG0iCiZuvslTXzC/+/Hkj9uSzLySqH8Sm1jn8/bsYL+WWD0i0AQiyxhB957GEy\nOgz0tRcTAgMBAAECggEAKluPsI7qHRu11bgSfBvRxiQwv6RASLmgmxYC3/RB0aW1\nvhjDP4jcCVgBkX0Y5OjECd2Xq/YivO7LYSUtsDpq8427vR6H4Ox36F9cLNfEOXXj\nUYuLAmDCz6OUXpronS0vBFokFtiF703jV2g+sppkns7kr3z5aHgzcxOBCDeGrBIh\nF3mwHsun4/BA5UzJCHXszoT6ctfiY31YFsv+kDi6V07FwZU5TBKpyyP/NbNZi+rG\nnMXeh8+RDEl4VccdP/ZGBobtKk0aDalhxI+RJCIF4e+wdy3uGplSXcAh44JHe3lY\np5zwOGeDpKSO7e3t0f8CizdtffzCCr4LKOVM49drQQKBgQDq4lOvp/2vEIJYzGbU\n9GuDS+IX67Omf66g9lH+kdjjX7XcfGqmVcntxc/iuzgI0OfQ3sjKYPH5ccpmExPq\n9x94R2eiT4i3tncoA8CnNQsliCoaGsxDQkFx2zBzYbhoBxoicRuTYS+SwFnOy6Y/\nGNxPM77iYpy5SyColZJpmNvB4QKBgQDSpi97EZGr3ljR01deeUba98MV1VwCYfwS\nj+JknPTHvDyKS0SySmZZOMW2kIufNfLP2XIjsALfOKSUCwcAOXWBaoyUyeD/U+F0\npFn8bWswbm0LBIWIwXLc5qWsVh0gR2elWOnfmJ86/RdKXymANt15YHeDmoZd+ZvU\nuIXQE1rfcwKBgQDlzGQ/uMVzH13HbsM0maUOIZGkAZAT11uMUzFJNHvTiHIusvLM\npaYXoK6QjsZ1qZ0DNtOPXGWgvHlegE++U+RQEtwLanDB/Bx745/6duTe5Wb7fzhU\nnV/V+rJeUD7QWBJzm+F0wWJ/2vyCW6/cj4ALZP7eEchvaFcdWKiT818dQQKBgDwB\nhTMMrS+Fdk3HY3MRHyMPQy58CerP2Mu82yQIJh6ju6c1i8syMHeoGYJJKMzgxFt7\nOO17nUXTT+awQX1J4PRN0uArpgF19pqQmuWykb9JJZzm29c6LCtLNNSj70YbsSXD\n71N3mZxnLnRMKXlRp8OEvGbr5OzuRvrQ2aWNbeyLAoGAN4vvd5PCffs/zPfqdF6n\nCS9FxHMBQ7KecGW8ZDFdD/LkMrm58c4eK8JJDT+bGT6w98Jpaq6hS0ldMlM4Isve\nT/0QkvP01HTJpHLVHK7Zo+/MJrLEakXBX7VrKFaeh5eyhiH/DvLZUqmX8Y/U6frx\nRtRqSLoAdtN9NW2OI0wsIA0=\n-----END PRIVATE KEY-----\n -----END PRIVATE KEY-----",
-			"client_email": "frssat@frssat.iam.gserviceaccount.com"
-		}).then(() => {
-			this.doc.loadInfo().then(() => {
-				this.getPromisedArrayFromSheetAndColumn("participants", "participants").then(res => {
-					this.participants = res;
-					this.setConnected();
-				})
-			})
-		}).catch(err => {
-			console.log(err)
+
+		CONFIG.tags.forEach((tag) => this.tags.push(tag["name"]));
+
+		axios.get(`/api/participants`).then(res => {
+			this.participants = res.data.participants;
+			this.setConnected();
 		})
 
 		this.state = {
+			editingSubmission: props.submissionUuidToLoad !== "",
 			connected: false,
 			recipientEditable: false,
 			recipientLoading: false,
@@ -74,14 +66,14 @@ class SubmissionBase extends Component {
 			anonymous: false,
 			nextYear: false
 		};
-	}
 
-	getPromisedArrayFromSheetAndColumn(sheet, column) {
-		return this.doc.sheetsByTitle[sheet].getRows().then(res => {
-			return Array.from(res.values()).map(v => v[column]);
-		})
+		if (this.state.editingSubmission) {
+			axios.get(`/api/submission?uuid=${props.submissionUuidToLoad}`).then(res => {
+				this.setState({...res.data, recipientEditable: true});
+				console.log(this.state)
+			});
+		}
 	}
-
 
 	setConnected() {
 		this.setState({connected: true});
@@ -102,8 +94,8 @@ class SubmissionBase extends Component {
 	setUserName(e, newValue) {
 		this.setState({username: newValue, recipientLoading: true});
 
-		this.getPromisedArrayFromSheetAndColumn("submissions", "username").then(res => {
-			if (res.includes(newValue)) {
+		axios.get(`/api/hasSubmitted?name=${newValue}`).then(res => {
+			if (res.data.hasSubmitted) {
 				this.setState({recipientEditable: true, recipientLoading: false, isPrimaryRecipient: false})
 			} else {
 				this.setState({
@@ -113,7 +105,7 @@ class SubmissionBase extends Component {
 					recipientEditable: false
 				})
 			}
-		})
+		});
 	}
 
 	setRecipient(e, newValue) {
@@ -133,7 +125,7 @@ class SubmissionBase extends Component {
 	}
 
 	setSecondaryImages(e) {
-	//todo make this better
+		//todo make this better
 		this.setState({secondaryLinks: e.target.value});
 	}
 
@@ -152,13 +144,13 @@ class SubmissionBase extends Component {
 	submitArt(e) {
 		let errors = ""
 		if (this.state.username === "") {
-			errors +=  "Username required. ";
+			errors += "Username required. ";
 		}
 		if (this.state.recipient === "") {
-			errors +=  "Recipient required. ";
+			errors += "Recipient required. ";
 		}
 		if (this.state.imageUrl === "") {
-			errors +=  "Image URL required. ";
+			errors += "Image URL required. ";
 		}
 		if (this.state.category === "") {
 			errors += "Category required. ";
@@ -167,26 +159,55 @@ class SubmissionBase extends Component {
 		if (errors !== "") {
 			this.setState({alertMessage: errors, alertOpen: true});
 		} else {
-			const uuid = uuidv4();
-			this.setState({loadingSubmit: true, uuid: uuid}, () => {
-				console.log(this.state)
-				this.doc.sheetsByTitle["submissions"].addRow(this.state).then(() => {
+			if (this.state.editingSubmission) {
+				this.setState({loadingSubmit: true});
+				axios.put(`/api/submit?uuid=${this.state.uuid}`, {
+					username: this.state.username,
+					recipient: this.state.recipient,
+					imageUrl: this.state.imageUrl,
+					secondaryLinks: this.state.secondaryLinks,
+					category: this.state.category,
+					message: this.state.message,
+					note: this.state.note,
+					anonymous: this.state.anonymous,
+					nextYear: this.state.nextYear
+				}).then(() => {
 					let submissionsObj = JSON.parse(localStorage.getItem("submissions"));
 
-					if (submissionsObj === null) {
-						submissionsObj = {"submissions" :[{"uuid": uuid, "imageUrl": this.state.imageUrl}]};
-					} else {
-						submissionsObj["submissions"].push({"uuid": uuid, "imageUrl": this.state.imageUrl});
-					}
+					let existingSub = submissionsObj.submissions.find(s => s.uuid === this.state.uuid);
+					existingSub.imageUrl = this.state.imageUrl;
+
 					localStorage.setItem("submissions", JSON.stringify(submissionsObj));
-					this.setState({alertMessage: "Submission complete! To edit this submission, use the code: " + uuid, submitted: true});
-				}).catch((err) => {
-					console.warn(err);
-					this.setState({alertMessage: "Submission failed! :(\nError:\n" + err});
-				}).finally(() => {
-					this.setState({loadingSubmit: false, alertOpen: true});
-				})
-			});
+					this.setState({
+						alertMessage: "Submission updated! To edit this submission again, use the code: " + this.state.uuid,
+						submitted: true, loadingSubmit: false, alertOpen: true
+					});
+				});
+			} else {
+				const uuid = uuidv4();
+				this.setState({loadingSubmit: true, uuid: uuid}, () => {
+					axios.post("/api/submit", this.state).then(() => {
+						let submissionsObj = JSON.parse(localStorage.getItem("submissions"));
+
+						if (submissionsObj === null) {
+							submissionsObj = {"submissions": [{"uuid": uuid, "imageUrl": this.state.imageUrl}]};
+						} else {
+							submissionsObj["submissions"].push({"uuid": uuid, "imageUrl": this.state.imageUrl});
+						}
+
+						localStorage.setItem("submissions", JSON.stringify(submissionsObj));
+						this.setState({
+							alertMessage: "Submission complete! To edit this submission, use the code: " + uuid,
+							submitted: true
+						});
+					}).catch((err) => {
+						console.warn(err);
+						this.setState({alertMessage: "Submission failed! :(\nError:\n" + err});
+					}).finally(() => {
+						this.setState({loadingSubmit: false, alertOpen: true});
+					})
+				});
+			}
 		}
 	}
 
@@ -225,214 +246,216 @@ class SubmissionBase extends Component {
 					</div>
 					{
 						this.state.connected ? (
-										<div className="container-fluid" style={{maxWidth: 970 + 'px', paddingTop: 2 + '%'}}>
-											<div id="username-field">
-												<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Username</strong></p>
+								<div className="container-fluid" style={{maxWidth: 970 + 'px', paddingTop: 2 + '%'}}>
+									<div id="username-field">
+										<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Username</strong></p>
+										<form className="container-fluid">
+											<Autocomplete
+													onChange={(e, newValue) => this.setUserName(e, newValue)}
+													disablePortal
+													autoHighlight
+													value={this.state.username}
+													id="username-box"
+													options={this.state.connected ? this.participants : []}
+													renderInput={(params) =>
+															<TextField {...params} required variant="filled" label="Your Username"/>}
+											/>
+										</form>
+									</div>
+
+									<div id="recipient-field" style={{paddingTop: 2 + '%'}}>
+										<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Recipient</strong></p>
+										{this.state.recipientLoading ? (<Box><CircularProgress/></Box>) : (
 												<form className="container-fluid">
 													<Autocomplete
-															onChange={(e, newValue) => this.setUserName(e, newValue)}
+															onChange={(e, newValue) => this.setRecipient(e, newValue)}
+															disabled={!this.state.recipientEditable}
 															disablePortal
 															autoHighlight
-															id="username-box"
+															value={this.state.recipient}
+															id="recipient-box"
 															options={this.state.connected ? this.participants : []}
 															renderInput={(params) =>
-																	<TextField {...params} required variant="filled" label="Your Username"/>}
+																	<TextField {...params}
+																	           required
+																	           variant="filled"
+																	           helperText={this.state.isPrimaryRecipient ? "If you wish to submit for someone else, complete this current submission and then start a new one." : ""}
+																	           label={this.state.isPrimaryRecipient ? "(You are submitting for your matched recipient!)" : this.state.recipientEditable ? "Your Recipient" : "(Please enter your username to begin)"}/>}
 													/>
 												</form>
-											</div>
+										)}
+									</div>
 
-											<div id="recipient-field" style={{paddingTop: 2 + '%'}}>
-												<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Recipient</strong></p>
-												{this.state.recipientLoading ? (<Box><CircularProgress/></Box>) : (
-														<form className="container-fluid">
-															<Autocomplete
-																	onChange={(e, newValue) => this.setRecipient(e, newValue)}
-																	disabled={!this.state.recipientEditable}
-																	disablePortal
-																	autoHighlight
-																	id="recipient-box"
-																	options={this.state.connected ? this.participants : []}
-																	renderInput={(params) =>
-																			<TextField {...params}
-																			           required
-																			           variant="filled"
-																			           helperText={this.state.isPrimaryRecipient ? "If you wish to submit for someone else, complete this current submission and then start a new one." : ""}
-																			           label={this.state.isPrimaryRecipient ? "(You are submitting for your matched recipient!)" : this.state.recipientEditable ? "Your Recipient" : "(Please enter your username to begin)"}/>}
-															/>
-														</form>
-												)}
-											</div>
+									<div id="image-field" style={{paddingTop: 2 + '%'}}>
+										<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Art</strong></p>
+										<form className="container-fluid">
+											<TextField
+													required
+													fullWidth
+													value={this.state.imageUrl}
+													error={this.state.validImageFileType ? undefined : true}
+													helperText={this.state.validImageFileType ? undefined : "Requires URL ending in: apng, avif, gif, jpeg, jpg, png, svg, or webp"}
+													onChange={(e) => this.setImage(e)}
+													id="image-field"
+													label="Link to Art"
+													variant="filled"/>
+										</form>
+										{this.state.validImageFileType && this.state.imageUrl !== "" ? (
+												<div className="row justify-content-center">
+													<img src={this.state.imageUrl}
+													     alt="Subject Reference (If you're seeing this alt text, it may be that your link is broken. Make sure it works or else it will not display.)"/>
+												</div>
+										) : undefined}
+									</div>
 
-											<div id="image-field" style={{paddingTop: 2 + '%'}}>
-												<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Art</strong></p>
-												<form className="container-fluid">
-													<TextField
-															required
-															fullWidth
-															error={this.state.validImageFileType ? undefined : true}
-															helperText={this.state.validImageFileType ? undefined : "Requires URL ending in: apng, avif, gif, jpeg, jpg, png, svg, or webp"}
-															onChange={(e) => this.setImage(e)}
-															id="image-field"
-															label="Link to Art"
-															variant="filled"/>
-												</form>
-												{this.state.validImageFileType && this.state.imageUrl !== "" ? (
-														<div className="row justify-content-center">
-															<img src={this.state.imageUrl}
-															     alt="Subject Reference (If you're seeing this alt text, it may be that your link is broken. Make sure it works or else it will not display.)"/>
-														</div>
-												) : undefined}
-											</div>
+									<div id="secondary-images-field" style={{paddingTop: 2 + '%'}}>
+										<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Secondary Art</strong> (Optional)</p>
+										<TextField
+												fullWidth
+												value={this.state.secondaryLinks}
+												helperText={"If you have any variations or alt versions, include them here in a comma separated list."}
+												onChange={(e) => this.setSecondaryImages(e)}
+												id="image-field"
+												label="Comma Separated List of Secondary Art URLs"
+												variant="filled"/>
+									</div>
 
-											<div id="secondary-images-field" style={{paddingTop: 2 + '%'}}>
-												<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Secondary Art</strong> (Optional)</p>
-												<TextField
-														fullWidth
-														helperText={"If you have any variations or alt versions, include them here in a comma separated list."}
-														onChange={(e) => this.setSecondaryImages(e)}
-														id="image-field"
-														label="Comma Separated List of Secondary Art URLs"
-														variant="filled"/>
-											</div>
+									<div id="category-field" style={{paddingTop: 2 + '%'}}>
+										<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Category</strong></p>
+										<Autocomplete
+												onChange={(e, newValue) => this.setCategory(e, newValue)}
+												disablePortal
+												autoHighlight
+												value={this.state.category}
+												id="category-box"
+												options={this.tags}
+												renderInput={(params) =>
+														<TextField
+																{...params}
+																required
+																variant="filled"
+																helperText="Choose the category that best represents this art."
+																label="Category"/>}
+										/>
+									</div>
 
-											<div id="category-field" style={{paddingTop: 2 + '%'}}>
-												<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Category</strong></p>
-												<Autocomplete
-														onChange={(e, newValue) => this.setCategory(e, newValue)}
-														disablePortal
-														autoHighlight
-														id="category-box"
-														options={this.tags}
-														renderInput={(params) =>
-																<TextField
-																		{...params}
-																		required
-																		variant="filled"
-																		helperText="Choose the category that best represents this art."
-																		label="Category"/>}
+									<div id="message-field" style={{paddingTop: 2 + '%'}}>
+										<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Holiday Message</strong> (Optional)</p>
+										<TextField
+												id="outlined-basic"
+												label="Holiday Message"
+												value={this.state.message}
+												error={this.state.messageTooLong}
+												helperText={"Little message to your recipient! " + this.state.message.length + "/300"}
+												minRows={4}
+												onChange={event => this.setMessage(event)}
+												fullWidth
+												multiline
+												variant="filled"/>
+									</div>
+
+									<div id="note-field" style={{paddingTop: 2 + '%'}}>
+										<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Private Note</strong> (Optional)</p>
+										<TextField
+												id="outlined-basic"
+												label="Private Note"
+												value={this.state.note}
+												helperText={"Anything you would like the organizers to know!"}
+												minRows={4}
+												onChange={event => this.setNote(event)}
+												fullWidth
+												multiline
+												variant="filled"/>
+									</div>
+
+									<form className="row justify-content-center" style={{maxWidth: 970 + 'px'}}>
+										<div className="row container justify-content-center">
+
+											<div className="form-check form-check-inline">
+												<FormGroup>
+													<FormControlLabel control={<Checkbox onChange={event => this.handleAnonChange(event)}
+													                                     checked={this.state.anonymous}/>}
+													                  label="Remain anonymous for this submission."/>
+												</FormGroup>
+											</div>
+											<div className="form-check form-check-inline">
+												<FormGroup>
+													<FormControlLabel control={<Checkbox onChange={event => this.handleNextYearChange(event)}
+													                                     checked={this.state.nextYear}/>}
+													                  label="Notify me when FR Secret Santa Art Trade is run again next year!"/>
+												</FormGroup>
+											</div>
+										</div>
+										<br/>
+										<div
+												className="d-flex justify-content-between container navBtns"
+												style={{maxWidth: 970 + 'px'}}
+										>
+											<div className="col d-flex justify-content-start">
+												<NavButton
+														navTo=""
+														type={""}
+														pageStateKey={"submissionState"}
+														pageState={this.state}
+														text={"Back"}
 												/>
 											</div>
-
-											<div id="message-field" style={{paddingTop: 2 + '%'}}>
-												<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Holiday Message</strong> (Optional)</p>
-												<TextField
-														id="outlined-basic"
-														label="Holiday Message"
-														error={this.state.messageTooLong}
-														helperText={"Little message to your recipient! " + this.state.message.length + "/300"}
-														minRows={4}
-														onChange={event => this.setMessage(event)}
-														fullWidth
-														multiline
-														variant="filled"/>
-											</div>
-
-											<div id="note-field" style={{paddingTop: 2 + '%'}}>
-												<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Private Note</strong> (Optional)</p>
-												<TextField
-														id="outlined-basic"
-														label="Private Note"
-														helperText={"Anything you would like the organizers to know!"}
-														minRows={4}
-														onChange={event => this.setNote(event)}
-														fullWidth
-														multiline
-														variant="filled"/>
-											</div>
-
-											<form className="row justify-content-center" style={{maxWidth: 970 + 'px'}}>
-												<div className="row container justify-content-center">
-
-													<div className="form-check form-check-inline">
-														<FormGroup>
-															<FormControlLabel control={<Checkbox onChange={event => this.handleAnonChange(event)}
-															                                     checked={this.state.anonymous}/>}
-															                  label="Remain anonymous for this submission."/>
-														</FormGroup>
-													</div>
-													<div className="form-check form-check-inline">
-														<FormGroup>
-															<FormControlLabel control={<Checkbox onChange={event => this.handleNextYearChange(event)}
-															                                     checked={this.state.nextYear}/>}
-															                  label="Notify me when FR Secret Santa Art Trade is run again next year!"/>
-														</FormGroup>
-													</div>
-												</div>
-												<br/>
-												<div
-														className="d-flex justify-content-between container navBtns"
-														style={{maxWidth: 970 + 'px'}}
+											<div className="col d-flex justify-content-end">
+												<Button
+														id="submit-art-btn"
+														onClick={(e) => this.submitArt(e)}
+														variant="contained"
+														endIcon={<SendIcon/>}
 												>
-													<div className="col d-flex justify-content-start">
-														<NavButton
-																navTo="/"
-																type={""}
-																pageStateKey={"submissionState"}
-																pageState={this.state}
-																text={"Back"}
-																/>
-													</div>
-													<div className="col d-flex justify-content-end">
-														<Button
-																id="submit-art-btn"
-																onClick={(e) => this.submitArt(e)}
-																variant="contained"
-																endIcon={<SendIcon />}
-														>
-															{this.state.loadingSubmit ? <CircularProgress/> : "SUBMIT!"}
-														</Button>
-													</div>
-												</div>
-											</form>
+													{this.state.loadingSubmit ? <CircularProgress/> : "SUBMIT!"}
+												</Button>
+											</div>
 										</div>
-								) : (<div className="container-fluid" style={{maxWidth: 970 + 'px', paddingTop: 2 + '%'}}>
-											<Box><CircularProgress/></Box>
-										</div>)
+									</form>
+								</div>
+						) : (<div className="container-fluid" style={{maxWidth: 970 + 'px', paddingTop: 2 + '%'}}>
+							<Box><CircularProgress/></Box>
+						</div>)
 					}
 					<Dialog
-						open={this.state.alertOpen}
-						onClose={() => this.handleClose()}
-						aria-labelledby="alert-dialog-title"
-						aria-describedby="alert-dialog-description"
-				>
-					<DialogTitle id="alert-dialog-title">
-						Submission Alert
-					</DialogTitle>
-					<DialogContent>
-						<DialogContentText id="alert-dialog-description">
-							{this.state.alertMessage}
-						</DialogContentText>
-					</DialogContent>
-					<DialogActions>
-						{this.state.submitted ? (<NavButton
-								navTo=""
-								type={""}
-								pageStateKey={"submissionState"}
-								pageState={this.state}
-								text={"Done!"}
-								passThrough = {{
-									color: "success",
-									variant: "contained"
-								}}
-						/>) : (<Button onClick={(e) => this.handleClose(e)}>Okay</Button>)}
+							open={this.state.alertOpen}
+							onClose={() => this.handleClose()}
+							aria-labelledby="alert-dialog-title"
+							aria-describedby="alert-dialog-description"
+					>
+						<DialogTitle id="alert-dialog-title">
+							Submission Alert
+						</DialogTitle>
+						<DialogContent>
+							<DialogContentText id="alert-dialog-description">
+								{this.state.alertMessage}
+							</DialogContentText>
+						</DialogContent>
+						<DialogActions>
+							{this.state.submitted ? (<NavButton
+									navTo=""
+									type={""}
+									pageStateKey={"submissionState"}
+									pageState={this.state}
+									text={"Done!"}
+									passThrough={{
+										color: "success",
+										variant: "contained"
+									}}
+							/>) : (<Button onClick={(e) => this.handleClose(e)}>Okay</Button>)}
 
-					</DialogActions>
-				</Dialog>
+						</DialogActions>
+					</Dialog>
 				</div>
 		);
 	}
 }
 
-// const mapStateToProps = state => ({
-//   // todos: state.list,
-//   // inputText: state.inputText
-// });
-
-const mapDispatchToProps = dispatch => ({
-	// updateUserInfo: bindActionCreators(updateUserInfo, dispatch)
+const mapStateToProps = state => ({
+	submissionUuidToLoad: state.uuid
 });
 
 export const Submission = connect(
-		mapDispatchToProps
+		mapStateToProps
 )(SubmissionBase);
 
