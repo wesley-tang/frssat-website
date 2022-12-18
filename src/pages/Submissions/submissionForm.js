@@ -365,7 +365,7 @@ class SubmissionBase extends Component {
 												>
 													<div className="col d-flex justify-content-start">
 														<NavButton
-																navTo="submissions"
+																navTo="/"
 																type={""}
 																pageStateKey={"submissionState"}
 																pageState={this.state}
