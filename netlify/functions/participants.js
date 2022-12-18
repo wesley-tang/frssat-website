@@ -6,11 +6,6 @@ export async function handler(event) {
 		return {statusCode: 405};
 	}
 
-	return {
-		statusCode: 400,
-		body: process.env.PRIVATE_KEY.replaceAll("\\n", "\n")
-	}
-
 	const doc = new GoogleSpreadsheet(CONFIG.sheetsID);
 
 	await doc.useServiceAccountAuth({
