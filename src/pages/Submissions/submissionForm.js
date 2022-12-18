@@ -109,7 +109,8 @@ class SubmissionBase extends Component {
 				this.setState({
 					recipient: RECIPIENT_FORMULA.replace("user", newValue),
 					recipientLoading: false,
-					isPrimaryRecipient: true
+					isPrimaryRecipient: true,
+					recipientEditable: false
 				})
 			}
 		})
@@ -189,7 +190,10 @@ class SubmissionBase extends Component {
 		}
 	}
 
-	handleClose(e) {
+	handleClose() {
+		if (this.state.submitted) {
+			return;
+		}
 		this.setState({alertOpen: false});
 	}
 
@@ -294,14 +298,18 @@ class SubmissionBase extends Component {
 											<div id="category-field" style={{paddingTop: 2 + '%'}}>
 												<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Category</strong></p>
 												<Autocomplete
-														required
 														onChange={(e, newValue) => this.setCategory(e, newValue)}
 														disablePortal
 														autoHighlight
 														id="category-box"
 														options={this.tags}
 														renderInput={(params) =>
-																<TextField {...params} variant="filled" label="Category"/>}
+																<TextField
+																		{...params}
+																		required
+																		variant="filled"
+																		helperText="Choose the category that best represents this art."
+																		label="Category"/>}
 												/>
 											</div>
 

@@ -8,9 +8,9 @@ export default function Submissions() {
 		navigate("/submissionForm");
 	}
 
-	// function handleEditSubmissionClick() {
-	// 	navigate("/editSubmission");
-	// }
+	function handleEditSubmissionClick() {
+		navigate("/editSubmissions");
+	}
 
 	return (
 			<div className="submissionsPage">
@@ -26,10 +26,9 @@ export default function Submissions() {
 				<div className="row justify-content-center">
 					<div className="col-md-auto">
 						<button
-								disabled
 								type="button"
 								className="btn btn-primary"
-								onClick={handleNewSubmissionClick}
+								onClick={handleEditSubmissionClick}
 								style={{marginBottom: 5 + '%'}}
 						>
 							Edit Submissions
