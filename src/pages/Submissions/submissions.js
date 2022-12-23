@@ -12,6 +12,7 @@ import CardActionArea from "@mui/material/CardActionArea";
 import CardMedia from "@mui/material/CardMedia";
 import Card from "@mui/material/Card";
 import TextField from "@mui/material/TextField";
+import {Grid} from "@mui/material";
 
 export default function Submissions() {
 	const navigate = useNavigate();
@@ -52,9 +53,11 @@ export default function Submissions() {
 
 			let submissions = submissionsObj["submissions"];
 
-			submissions.forEach(submission => {
-				setSubmissionCards([...submissionCards, (
-						<Card sx={{maxWidth: 345}}>
+			let submissionCardsTemp = [];
+
+			submissions.forEach(submission => submissionCardsTemp.push(
+					<div style={{paddingBottom: 2 + "%"}}>
+						<Card sx={{width: 345, height: 345}}>
 							<CardActionArea onClick={() => loadSubmission(submission.uuid)}>
 								<CardMedia
 										component="img"
@@ -62,8 +65,10 @@ export default function Submissions() {
 								/>
 							</CardActionArea>
 						</Card>
-				)])
-			})
+					</div>
+			))
+
+			setSubmissionCards(submissionCardsTemp);
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
@@ -101,11 +106,21 @@ export default function Submissions() {
 					</div>
 				</div>
 				{existingSubmissions ? (
-						<div className="container-fluid" style={{maxWidth: 970 + 'px', paddingTop: 2 + '%'}}>
-							<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Previous Submissions</strong></p>
-							<p align="left">Edit any of your previous submissions by clicking/tapping on the cards below:</p>
-							<div className="container-fluid" style={{maxWidth: 970 + 'px', paddingTop: 2 + "%"}}>
-								{submissionCards}
+						<div>
+							<div className="container-fluid" style={{maxWidth: 970 + 'px', paddingTop: 2 + '%'}}>
+								<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Previous Submissions</strong></p>
+								<p align="left">Edit any of your previous submissions by clicking/tapping on the cards below:</p>
+							</div>
+							<div className="container-fluid" style={{maxWidth: 90 + '%', paddingTop: 2 + "%"}}>
+								<Grid
+										container
+										direction="row"
+										justify="flex-start"
+										alignItems="flex-start"
+										sx={{"justify-content": "space-around"}}
+								>
+									{submissionCards}
+								</Grid>
 							</div>
 						</div>
 				) : undefined}
