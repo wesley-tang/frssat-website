@@ -6,7 +6,7 @@ import "./css/App.css";
 import {Route, Routes, BrowserRouter as Router} from "react-router-dom";
 import {formState} from "./state/formState";
 
-// import Home from "./pages/SignUps/home";
+import {Home} from "@mui/icons-material";
 import {Preferences} from "./pages/SignUps/preferences";
 import {Subjects} from "./pages/SignUps/subjects";
 import {Tier} from "./pages/SignUps/tier";
@@ -15,6 +15,7 @@ import {Info} from "./pages/SignUps/info";
 import {Finish} from "./pages/SignUps/finish";
 import Submissions from "./pages/Submissions/submissions";
 import {Submission} from "./pages/Submissions/submissionForm";
+import Gallery from "./pages/Gallery/gallery";
 
 const store = createStore(formState, applyMiddleware(thunk));
 
@@ -24,7 +25,7 @@ function App() {
 				<Router>
 					<div className="App">
 						<Routes>
-							{/*<Route path="/" element={<Home/>}/>*/}
+							<Route path="/home" element={<Home/>}/>
 							<Route path="/preferences" element={<Preferences/>}/>
 							<Route path="/subjects" element={<Subjects/>}/>
 							<Route path="/tier" element={<Tier/>}/>
@@ -33,6 +34,7 @@ function App() {
 							<Route path="/finish" element={<Finish/>}/>
 							<Route path="/" element={<Submissions/>}/>
 							<Route path="/submissionForm" element={<Submission/>}/>
+							<Route path="/gallery" element={<Gallery/>}/>
 						</Routes>
 					</div>
 				</Router>
