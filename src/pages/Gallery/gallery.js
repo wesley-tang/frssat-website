@@ -77,7 +77,7 @@ export default function Gallery() {
 		let currentDate;
 		const endDate = Date.parse(CONFIG.endDate);
 
-		axios.get("http://worldtimeapi.org/api/timezone/America/Los_Angeles").then(res => {
+		axios.get("https://worldtimeapi.org/api/timezone/America/Los_Angeles").then(res => {
 			console.log("GETTING DATE");
 			console.log(res.data);
 			if (res.data == null) {
