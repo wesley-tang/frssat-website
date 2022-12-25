@@ -236,7 +236,7 @@ export default function Gallery() {
 						<Stack direction={{ md: 'column', lg: 'row' }} spacing={7}>
 							<img
 									src={currentArt.imageUrl}
-									style={{maxWidth: 75 + "%",  paddingTop: 2 + '%'}}
+									style={{maxWidth: (width < 900 ? 100 : 75) + "%",  paddingTop: 2 + '%'}}
 									alt={`${currentArt.username}'s art to ${currentArt.recipient}`}
 							/>
 							<div>
@@ -254,8 +254,9 @@ export default function Gallery() {
 											</p>
 										</div>
 								)}
-								{currentArt.secondaryLinks === null ? undefined : (
+								{currentArt.secondaryLinks === "" ? undefined : (
 										<div>
+											<br/>
 											<strong>Alt versions:</strong>
 											<p>
 												(I'm so sorry i'll makew these proper these tomorrow)
