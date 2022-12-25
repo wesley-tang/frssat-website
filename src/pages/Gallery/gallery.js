@@ -254,7 +254,7 @@ export default function Gallery() {
 											</p>
 										</div>
 								)}
-								{currentArt.secondaryLinks === null || currentArt.secondaryLinks.length === 0 ? undefined : (
+								{currentArt.secondaryLinks === null ? undefined : (
 										<div>
 											<strong>Alt versions:</strong>
 											<p>
