@@ -254,13 +254,14 @@ export default function Gallery() {
 											</p>
 										</div>
 								)}
-								{currentArt.secondaryLinks === null ? undefined : (
+								{currentArt.secondaryLinks.length === 0 ? undefined : (
 										<div>
 											<strong>Alt versions:</strong>
 											<p>
-												I'm so sorry i'll fix these tomorrow
-												{currentArt.secondaryLinks}
+												(I'm so sorry i'll makew these proper these tomorrow)
 											</p>
+											<br/>
+											{currentArt.secondaryLinks}
 										</div>
 								)}
 							</div>
