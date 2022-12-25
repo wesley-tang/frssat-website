@@ -170,6 +170,11 @@ export default function Gallery() {
 				</div>
 				{revealArt ? artLoaded ? (
 						<div className="container-fluid" style={{paddingTop: 2 + '%'}}>
+							<div className="container-fluid" style={{paddingTop: 2 + '%'}}>
+								<p style={{maxWidth: 750 + 'px'}}>
+									Click/Tap on an image to view it in full with additional information! To find your own gifts, select your name in the "Filter by Recipient" box.
+								</p>
+							</div>
 							<div className="container-fluid" style={{paddingTop: 2 + '%', paddingBottom: 4 + '%'}}>
 								<Stack spacing={5}
 								       direction={{ xs: 'column', sm: 'row' }}
