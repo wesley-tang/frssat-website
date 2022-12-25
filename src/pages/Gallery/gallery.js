@@ -264,7 +264,7 @@ export default function Gallery() {
 											<br/>
 											<strong>Alt versions:</strong>
 											<p>
-												(I'm so sorry i'll makew these proper these tomorrow)
+												(Will fix alt version rendering at a later date, sorry!)
 											</p>
 											<br/>
 											{currentArt.secondaryLinks}
