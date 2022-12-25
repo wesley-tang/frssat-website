@@ -5,33 +5,43 @@ import axios from 'axios';
 import CONFIG from "../../config/CONFIG.json";
 
 import CardActionArea from "@mui/material/CardActionArea";
-import CardMedia from "@mui/material/CardMedia";
-import Card from "@mui/material/Card";
-// import TextField from "@mui/material/TextField";
 
-import {Grid, Paper} from "@mui/material";
-import CardContent from "@mui/material/CardContent";
+import {ImageList, ImageListItem, Paper} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
 import * as React from "react";
+import useWindowDimensions from "../../components/useWindowDimensions";
+import TextField from "@mui/material/TextField";
+import Autocomplete from "@mui/material/Autocomplete";
+import Stack from "@mui/material/Stack";
+import Modal from "react-bootstrap/Modal";
+
 
 export default function Gallery() {
+	const {width} = useWindowDimensions();
+
 	const [open, setOpen] = useState(false);
 	const [revealArt, setRevealArt] = useState(false);
 	const [artLoaded, setArtLoaded] = useState(false);
 	const [artCards, setArtCards] = useState([]);
+
+	const [submissions, setSubmissions] = useState([]);
 	const [countdownText, setCountDownText] = useState("");
+	const [currentArt, setCurrentArt] = useState({});
+
+	const [usernameFilter, setUsernameFilter] = useState("");
+	const [recipientFilter, setRecipientFilter] = useState("");
+	const [categoryFilter, setCategoryFilter] = useState("");
+
+	const [participants, setParticipants] = useState([]);
+	const [tags, setTags] = useState([]);
 
 
-	const handleClose = () => {
-		console.log(open);
-		setOpen(false);
-	};
+	const handleClose = () => setOpen(false);
 
 	function openArtModal(submission) {
-		// set values for the card here
-		handleClose();
+		setCurrentArt(submission);
 		setOpen(true);
 	}
 
@@ -44,42 +54,88 @@ export default function Gallery() {
 		setCountDownText(days + "d " + hours + "h " + minutes + "m " + seconds + "s");
 	}
 
-	function revealArtGallery() {
-		setRevealArt(true);
+	function setUserName(e, newValue) {
+		if (newValue !== usernameFilter) {
+			setUsernameFilter(newValue);
+		}
+	}
+
+	function setRecipient(e, newValue) {
+		if (newValue !== recipientFilter) {
+			setRecipientFilter(newValue);
+		}
+	}
+
+	function setCategory(e, newValue) {
+		if (newValue !== categoryFilter) {
+			setCategoryFilter(newValue);
+		}
+	}
+
+	function applyFilters() {
+		let filteredSubmissions = [...submissions];
+
+		if (usernameFilter !== "" && usernameFilter !== null) {
+			filteredSubmissions = filteredSubmissions.filter(submission => submission.username === usernameFilter);
+		}
+		if (recipientFilter !== "" && recipientFilter !== null) {
+			filteredSubmissions = filteredSubmissions.filter(submission => submission.recipient === recipientFilter);
+		}
+		if (categoryFilter !== "" && categoryFilter !== null) {
+			filteredSubmissions = filteredSubmissions.filter(submission => submission.category === categoryFilter);
+		}
+
+		return filteredSubmissions;
+	}
+
+	function renderCards(submissionsToRender) {
 		const artCardsTemp = [];
 
-		axios.get('/api/submissions').then(resSub => {
-			resSub.data.submissions.forEach(submission => artCardsTemp.push(
-					<di>
-						<Card sx={{width: 345, height: 365}}>
-							<CardActionArea onClick={() => openArtModal(submission)}>
-								<CardMedia
-										component="img"
-										image={submission.imageUrl}
-										sx={{maxHeight: 90 + "%"}}
-								/>
-								<CardContent>
-									<Typography variant="body2" color="text.secondary">
-										Recipient: {submission.recipient}
-									</Typography>
-								</CardContent>
-							</CardActionArea>
-						</Card>
-					</di>
-			))
+		submissionsToRender.forEach(submission => artCardsTemp.push(
+				<CardActionArea onClick={() => openArtModal(submission)}>
+					<ImageListItem key={submission.imageUrl}>
+						<img
+								src={`${submission.imageUrl}?w=248&fit=crop&auto=format`}
+								loading="lazy"
+								alt={`${submission.username}'s art to ${submission.recipient}`}
+						/>
+					</ImageListItem>
+				</CardActionArea>
+		));
 
-			setArtCards(artCardsTemp);
-			setArtLoaded(true);
+		return artCardsTemp;
+	}
+
+	function revealArtGallery() {
+		setRevealArt(true);
+
+		axios.get(`/api/participants`).then(res => {
+			setParticipants(res.data.participants);
+
+			axios.get('/api/submissions').then(resSub => {
+				setSubmissions(resSub.data.submissions);
+				setArtCards(renderCards(resSub.data.submissions));
+				setArtLoaded(true);
+			});
 		});
 	}
 
 	useEffect(() => {
+		const filtered = applyFilters();
+		setArtCards(renderCards(filtered));
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [usernameFilter, recipientFilter, categoryFilter]);
+
+	useEffect(() => {
+		let tempTags = [];
+		CONFIG.tags.forEach(tag => tempTags.push(tag.name));
+		setTags(tempTags);
+
 		let currentDate;
 		const endDate = Date.parse(CONFIG.endDate);
 
 		axios.get("https://worldtimeapi.org/api/timezone/America/Los_Angeles").then(res => {
-			console.log("GETTING DATE");
-			console.log(res.data);
 			if (res.data == null) {
 				currentDate = new Date();
 			} else {
@@ -114,32 +170,103 @@ export default function Gallery() {
 				</div>
 				{revealArt ? artLoaded ? (
 						<div className="container-fluid" style={{paddingTop: 2 + '%'}}>
-							<div className="container-fluid" style={{paddingTop: 2 + '%'}}>
-								filters go here
+							<div className="container-fluid" style={{paddingTop: 2 + '%', paddingBottom: 4 + '%'}}>
+								<Stack spacing={5}
+								       direction={{ xs: 'column', sm: 'row' }}
+								>
+								<Autocomplete
+										onChange={(e, newValue) => setUserName(e, newValue)}
+										clearOnEscape
+										fullWidth
+										disablePortal
+										id="username-box"
+										options={artLoaded ? participants : []}
+										renderInput={(params) =>
+												<TextField {...params} label="Filter by Artist"/>}
+								/>
+								<Autocomplete
+										onChange={(e, newValue) => setRecipient(e, newValue)}
+										clearOnEscape
+										fullWidth
+										disablePortal
+										id="recipient-box"
+										options={artLoaded ? participants : []}
+										renderInput={(params) =>
+												<TextField {...params} label="Filter by Recipient"/>}
+								/>
+
+								<Autocomplete
+										onChange={(e, newValue) => setCategory(e, newValue)}
+										clearOnEscape
+										fullWidth
+										disablePortal
+										id="category-box"
+										options={tags}
+										renderInput={(params) =>
+												<TextField {...params} label="Filter by Category"/>}
+								/>
+							</Stack>
 							</div>
 							<div className="container-fluid">
-								<Grid
-										container
-										direction="row"
-										justify="flex-start"
-										alignItems="flex-start"
-										sx={{"justify-content": "space-around"}}
-								>
+								<ImageList variant="masonry" cols={width > 1300 ? 6 : width > 1000 ? 5 : width > 650 ? 4 : 3} gap={10}>
 									{artCards}
-								</Grid>
+								</ImageList>
 							</div>
 						</div>
-				) : (<Box><CircularProgress/></Box>) : (
+				) : (<Box style={{paddingTop: 2 + '%'}}><CircularProgress/></Box>) : (
 						<div className="container-fluid" style={{maxWidth: 970 + 'px', paddingTop: 2 + '%'}}>
 							<Box>
 								<Paper elevation={3}>
 									<h2 style={{paddingTop: 2 + '%'}}><strong>{countdownText}</strong> until art is revealed!</h2>
-									<img style={{maxWidth: 300 + 'px', padding: 2 + '%'}} src="https://media.tenor.com/Z1jMniesorUAAAAC/excited-excited-dog.gif"
+									<img style={{maxWidth: 300 + 'px', padding: 2 + '%'}}
+									     src="https://media.tenor.com/Z1jMniesorUAAAAC/excited-excited-dog.gif"
 									     alt="tippy tappy shibby"/>
 								</Paper>
 							</Box>
 						</div>
 				)}
+				<Modal
+						fullscreen
+						show={open}
+						onHide={handleClose}
+				>
+					<Modal.Header closeButton>
+					</Modal.Header>
+					<Modal.Body>
+						<Stack direction={{ md: 'column', lg: 'row' }} spacing={7}>
+							<img
+									src={currentArt.imageUrl}
+									style={{maxWidth: 75 + "%",  paddingTop: 2 + '%'}}
+									alt={`${currentArt.username}'s art to ${currentArt.recipient}`}
+							/>
+							<div>
+								<Typography id="modal-modal-description" sx={{mt: 2}}>
+									From: <strong>{currentArt.username === "?" ? <i>anonymous</i> : currentArt.username}</strong>
+									<br/>
+									To: <strong>{currentArt.recipient}</strong>
+									<br/>
+								</Typography>
+								{currentArt.message === "" ? undefined : (
+										<div>
+											<strong>Message:</strong>
+											<p>
+												{currentArt.message}
+											</p>
+										</div>
+								)}
+								{currentArt.secondaryLinks === null ? undefined : (
+										<div>
+											<strong>Alt versions:</strong>
+											<p>
+												I'm so sorry i'll fix these tomorrow
+												{currentArt.secondaryLinks}
+											</p>
+										</div>
+								)}
+							</div>
+						</Stack>
+					</Modal.Body>
+				</Modal>
 			</div>
 	)
 			;
