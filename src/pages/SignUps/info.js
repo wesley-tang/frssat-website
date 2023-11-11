@@ -19,7 +19,10 @@ class InfoBase extends Component {
 			console.warn("FAILED TO LOAD FROM LOCAL STORAGE.")
 		}
 		if (infoState === null) {
-			this.state = {infoField: "", open: false};
+			this.state = {
+				infoField: "",
+				open: false
+			};
 		} else {
 			this.state = infoState;
 		}

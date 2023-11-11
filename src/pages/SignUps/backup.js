@@ -15,7 +15,9 @@ class BackupBase extends Component {
 			console.warn("FAILED TO LOAD FROM LOCAL STORAGE.")
 		}
 		if (backupState === null) {
-			this.state = {backupSanta: false};
+			this.state = {
+				backupSanta: false
+			};
 		} else {
 			this.state = backupState;
 		}

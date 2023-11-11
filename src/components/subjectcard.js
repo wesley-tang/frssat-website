@@ -71,7 +71,8 @@ export class SubjectCard extends Component {
 									                   color={this.props.subject.position === 0 ? "disabled" : "primary"}/>
 								</IconButton>
 							</div>
-							<Typography gutterBottom variant="h5" component="div">
+							<Typography gutterBottom variant="h5" className="col d-flex justify-content-center"
+							            sx={{marginBottom: '0', paddingTop: '12px', paddingBottom: '12px'}}>
 								{this.getOrdinal(this.props.subject.position)}
 							</Typography>
 							<div className="col d-flex justify-content-end">

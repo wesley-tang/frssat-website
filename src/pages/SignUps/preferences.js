@@ -128,8 +128,8 @@ class PreferencesBase extends Component {
 						</p>
 						<br/>
 						<p>Click on the tags for definitions and examples.</p>
-						<div style={{marginTop: 1 + '%', marginBottom: 30, paddingTop: 0}} className="row justify-content-center">
-							<Stack spacing={1} direction={{xs: 'column', sm: 'row'}}>
+						<div style={{marginTop: 1 + '%', marginBottom: 30, paddingTop: 0}} >
+							<Stack spacing={1} direction={{xs: 'column', sm: 'row'}} className="justify-content-md-center">
 								{this.renderTagChips(CONFIG.tags)}
 							</Stack>
 						</div>

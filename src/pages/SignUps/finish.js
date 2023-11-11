@@ -68,11 +68,12 @@ class FinishBase extends Component {
 		            id="completeForm"
 		            className="md-textarea form-control"
 		            rows="10"
+		            style={{maxWidth: 970 + 'px'}}
 		            onClick={event => this.select(event)}
             />
 						</div>
-						<div className="row justify-content-center">
-							<Button variant="contained" onClick={event => this.handleClick(event)}>Copy</Button>
+						<div style={{paddingTop: 2 + '%'}}>
+							<Button className="row justify-content-center" variant="contained" onClick={event => this.handleClick(event)}>Copy</Button>
 						</div>
 						<div class="d-flex justify-content-center" style={{marginTop: 8 + '%'}}>
 							<div className="col d-flex justify-content-start">

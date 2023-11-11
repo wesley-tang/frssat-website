@@ -161,6 +161,7 @@ class TierBase extends Component {
 										defaultValue={this.state.tier}
 										value={this.state.tier}
 										onChange={(event) => this.handleChange(event)}
+										className="justify-content-center"
 								>
 									<FormControlLabel value="a" control={<Radio/>} label="A"/>
 									<FormControlLabel value="b" control={<Radio/>} label="B"/>

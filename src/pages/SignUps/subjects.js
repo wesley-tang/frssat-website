@@ -225,7 +225,7 @@ class SubjectsBase extends Component {
 		if (this.state.subjects.length < CONFIG.maxSubjects) {
 			cards.push(
 					<Card sx={{minWidth: 150, maxWidth: 225, minHeight: 200}}>
-						<CardActionArea sx={{height: 100 + '%'}} onClick={() => {
+						<CardActionArea sx={{minWidth: 150, maxWidth: 225, minHeight: 200, height: 100 + '%'}} onClick={() => {
 							this.openModal()
 						}}>
 							<CardContent>
@@ -287,14 +287,14 @@ class SubjectsBase extends Component {
 						</div>
 					</div>
 					<div className="container-fluid">
-						<div className="row justify-content-center">
 							<Stack
 									direction={{xs: 'column', lg: 'row'}}
 									spacing={{xs: 2}}
+									justifyContent="center"
+									alignItems="center"
 							>
 								{this.renderCards()}
 							</Stack>
-						</div>
 					</div>
 					<div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
 						<div className="row justify-content-center" style={{maxWidth: 970 + 'px'}}>

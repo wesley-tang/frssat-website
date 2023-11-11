@@ -1,7 +1,9 @@
 {
-  "signUpDeadLine": "2022-11-25T00:00:00-08:00",
-  "mainThreadUrl": "https://www1.flightrising.com/forums/cc/3183232",
-  "signupThreadUrl": "https://www1.flightrising.com/forums/cc/3183234",
+  "signUpDeadLine": "2023-11-25T00:00:00-08:00",
+  "endDate":"2023-12-25T00:00:00-08:00",
+  "currentYear": 2023,
+  "mainThreadUrl": "https://www1.flightrising.com/forums/cc/3283751",
+  "signupThreadUrl": "https://www1.flightrising.com/forums/cc/3283752",
   "tags": [
     {
       "name": "FR Dragon",
@@ -33,6 +35,5 @@
     }
   ],
   "maxSubjects": 5,
-  "sheetsID": "1eE2j4gCJzS2chf7aFY7ywlDC6htbcOs61qKNpsEPV1U",
-  "endDate":"2022-12-25T00:00:00-08:00"
+  "sheetsID": "1eE2j4gCJzS2chf7aFY7ywlDC6htbcOs61qKNpsEPV1U"
 }
