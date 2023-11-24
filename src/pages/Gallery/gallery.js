@@ -166,7 +166,7 @@ export default function Gallery() {
 
 			<div className="galleryPage">
 				<div className="container-fluid" style={{maxWidth: 970 + 'px', paddingTop: 2 + "%"}}>
-					<h1 style={{margin: 0}}><strong>FRSSAT 2022 GALLERY</strong></h1>
+					<h1 style={{margin: 0}}><strong>FRSSAT 2023 GALLERY</strong></h1>
 				</div>
 				{revealArt ? artLoaded ? (
 						<div className="container-fluid" style={{paddingTop: 2 + '%'}}>

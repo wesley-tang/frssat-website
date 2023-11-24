@@ -55,7 +55,7 @@ class FinishBase extends Component {
 						<p align="left">
 							Copy your completed form below and paste it to the forums on our sign
 							up thread&nbsp;
-							<a href={CONFIG.signupThreadUrl}>HERE</a>
+							<a href={CONFIG.signupThreadUrl}>HERE</a>&nbsp;
 							and make any adjustments necessary. If you need to edit fields in red, please redo the form.<br/>
 							(Please <strong> do not change the
 							the code at the bottom</strong>)

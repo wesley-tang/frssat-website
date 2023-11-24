@@ -79,15 +79,14 @@ export default function Home() {
 							onClick={handleClick}
 							style={{marginBottom: 5 + "%"}}
 					>
-						Let's Get Started!
+						{existingForm ? "Edit Form" : "Let's Get Started!"}
 					</button>
 				</div>
 				{existingForm ?
 						<div>
-							<div className="container-fluid" style={{paddingTop: 2 + "%", paddingBottom: 1 + "%"}}>
+							<div className="container-fluid" style={{paddingBottom: 1 + "%"}}>
 								<p style={{maxWidth: 750 + "px"}}>
-									You have an existing form, possibly from last year! Click here to reset it, or continue to edit your
-									sign-up form from last year.
+									You have an existing form, possibly from last year! Click here to reset it.
 								</p>
 							</div>
 							<div className="container">
