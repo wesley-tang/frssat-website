@@ -14,15 +14,6 @@ const INITIAL_STATE = {
   submissionUuid: ""
 };
 
-export function updateUserInfo(userInfo) {
-  return dispatch => {
-    dispatch({
-      type: "UPDATE_USER_INFO",
-      payload: userInfo
-    });
-  };
-}
-
 export function loadFinalText() {
   return dispatch => {
     dispatch({
@@ -43,11 +34,11 @@ export function formState(state = INITIAL_STATE, action) {
   switch (action.type) {
     case "SET_UUID":
       return { ...state, uuid: action.payload.uuid};
-    case "UPDATE_USER_INFO":
-      return { ...state, username: action.payload.username, userid: action.payload.userid };
     case "UPDATE_PREFERENCES":
       let prefs = action.payload.prefsByTier;
       prefs.banned = prefs.banned.concat(action.payload.remainingTags);
+      console.log('prefs')
+      console.log(prefs)
       return {
         ...state,
         prefsByTier: prefs
@@ -70,6 +61,8 @@ export function formState(state = INITIAL_STATE, action) {
 }
 
 function generateCopyText(state) {
+  verifyFormIntegrity(state);
+
   return `[b][size=4]Information for your Secret Santa:[/size][/b]
 ${state.additionalInfo}
 
@@ -77,6 +70,32 @@ ${state.additionalInfo}
 ${generateSubjectText(state.subjects, state.noRanking)}
 
 [size=1]~/${generateCode(state)}/~[/size]`;
+}
+
+function verifyFormIntegrity(state) {
+  console.log(state.prefsByTier)
+  if (state.prefsByTier.prefer.length === 0 && state.prefsByTier.willing.length === 0 && state.prefsByTier.banned.length === 0) {
+    try {
+      let prefState = JSON.parse(localStorage.getItem("prefState"));
+      console.log('prefState')
+      console.log(prefState)
+      state.prefsByTier = prefState.tagsInTier;
+      state.prefsByTier.banned = state.prefsByTier.banned.concat(prefState.usableTags);
+      console.log(state.prefsByTier)
+    } catch (e) {
+      console.warn("FAILED TO LOAD PREFS FROM LOCAL STORAGE.")
+    }
+  }
+
+  if (state.subjects.length === 0) {
+    try {
+      let subjectState = JSON.parse(localStorage.getItem("subjectState"));
+      state.subjects = subjectState.subjects;
+      state.noRanking = subjectState.noRanking;
+    } catch (e) {
+      console.warn("FAILED TO LOAD subjects FROM LOCAL STORAGE.")
+    }
+  }
 }
 
 function generateCode(state) {
