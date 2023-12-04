@@ -54,6 +54,9 @@ export default function Submissions() {
 		if (submissions !== null) {
 			setExistingSubmissions(true);
 
+			if (!Array.isArray(submissions)) {
+				submissions = [];
+			}
 			submissions = submissions.filter((submission) => submission.year && submission.year === CONFIG.currentYear);
 			localStorage.setItem("submissions", JSON.stringify(submissions));
 
