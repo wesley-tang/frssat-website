@@ -25,7 +25,7 @@ import CONFIG from "../../config/CONFIG.json";
 import NavButton from "../../components/navbutton";
 
 
-const RECIPIENT_FORMULA = "=VLOOKUP(\"user\", matchups!A2:B90, 2, false)";
+const RECIPIENT_FORMULA = "=VLOOKUP(\"user\", matchups!A2:B, 2, false)";
 const ACCEPTED_FILE_TYPES = ["apng", "avif", "gif", "jpeg", "jpg", "png", "svg", "webp"];
 
 class SubmissionBase extends Component {
@@ -120,7 +120,7 @@ class SubmissionBase extends Component {
 		if (ACCEPTED_FILE_TYPES.some(s => e.target.value.endsWith(s))) {
 			this.setState({validImageFileType: true, imageUrl: e.target.value});
 		} else {
-			this.setState({validImageFileType: false});
+			this.setState({validImageFileType: false, imageUrl: e.target.value});
 		}
 	}
 
@@ -358,7 +358,7 @@ class SubmissionBase extends Component {
 										<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Private Note</strong> (Optional)</p>
 										<TextField
 												id="outlined-basic"
-												label="Private Note"
+												label="Private Note to Organizers"
 												value={this.state.note}
 												helperText={"Anything you would like the organizers to know!"}
 												minRows={4}
