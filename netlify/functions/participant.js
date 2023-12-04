@@ -6,7 +6,13 @@ export async function handler(event) {
 		return {statusCode: 405};
 	}
 
-	const doc = new GoogleSpreadsheet(CONFIG.sheetsID);
+	let sheetsId = CONFIG.currentSheetsID;
+
+	if (event.queryStringParameters.year) {
+		sheetsId = CONFIG[`sheetsID${event.queryStringParameters.year}`];
+	}
+
+	const doc = new GoogleSpreadsheet(sheetsId);
 
 	await doc.useServiceAccountAuth({
 		"private_key": process.env.PRIVATE_KEY.replaceAll("\\n", "\n"),

@@ -259,7 +259,7 @@ export default function Gallery() {
 											</p>
 										</div>
 								)}
-								{currentArt.secondaryLinks === "" ? undefined : (
+								{currentArt.altLinks === "" ? undefined : (
 										<div>
 											<br/>
 											<strong>Alt versions:</strong>
@@ -267,7 +267,7 @@ export default function Gallery() {
 												(Will fix alt version rendering at a later date, sorry!)
 											</p>
 											<br/>
-											{currentArt.secondaryLinks}
+											{currentArt.altLinks}
 										</div>
 								)}
 							</div>

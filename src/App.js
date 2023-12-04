@@ -13,9 +13,8 @@ import {Tier} from "./pages/SignUps/tier";
 import {Backup} from "./pages/SignUps/backup";
 import {Info} from "./pages/SignUps/info";
 import {Finish} from "./pages/SignUps/finish";
-// import Submissions from "./pages/Submissions/submissions";
-// import {Submission} from "./pages/Submissions/submissionForm";
-import Temp from "./pages/Submissions/temp";
+import Submissions from "./pages/Submissions/submissions";
+import {Submission} from "./pages/Submissions/submissionForm";
 import Gallery from "./pages/Gallery/gallery";
 import Gallery2022 from "./pages/Gallery/gallery2022";
 
@@ -34,8 +33,8 @@ function App() {
 							<Route path="/backup" element={<Backup/>}/>
 							<Route path="/info" element={<Info/>}/>
 							<Route path="/finish" element={<Finish/>}/>
-							<Route path="/submit" element={<Temp/>}/>
-							{/*<Route path="/submissionForm" element={<Submission/>}/>*/}
+							<Route path="/submit" element={<Submissions/>}/>
+							<Route path="/submissionForm" element={<Submission/>}/>
 							<Route path="/gallery" element={<Gallery/>}/>
 							<Route path="/gallery/2022" element={<Gallery2022/>}/>
 						</Routes>

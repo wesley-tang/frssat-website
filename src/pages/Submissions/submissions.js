@@ -2,6 +2,8 @@ import {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 
+import CONFIG from "../../config/CONFIG.json";
+
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -40,25 +42,27 @@ export default function Submissions() {
 	}
 
 	function codeIsCorrect() {
-		if (uuidText === "")
+		if (uuidText === "") {
 			return true;
+		}
 		return regexExp.test(uuidText);
 	}
 
 	useEffect(() => {
-		let submissionsObj = JSON.parse(localStorage.getItem("submissions"));
+		let submissions = JSON.parse(localStorage.getItem("submissions"));
 
-		if (submissionsObj !== null) {
+		if (submissions !== null) {
 			setExistingSubmissions(true);
 
-			let submissions = submissionsObj["submissions"];
+			submissions = submissions.filter((submission) => submission.year && submission.year === CONFIG.currentYear);
+			localStorage.setItem("submissions", JSON.stringify(submissions));
 
 			let submissionCardsTemp = [];
 
 			submissions.forEach(submission => submissionCardsTemp.push(
 					<div style={{paddingBottom: 2 + "%"}}>
-						<Card sx={{width: 345, height: 345}}>
-							<CardActionArea onClick={() => loadSubmission(submission.uuid)}>
+						<Card sx={{minWidth: 200, minHeight: 200, maxWidth: 345, maxHeight: 345}}>
+							<CardActionArea sx={{minWidth: 200, minHeight: 200, maxWidth: 345, maxHeight: 345, height: 100 + '%'}} onClick={() => loadSubmission(submission.uuid)}>
 								<CardMedia
 										component="img"
 										image={submission.imageUrl}
@@ -98,7 +102,7 @@ export default function Submissions() {
 						<TextField
 								fullWidth
 								error={codeIsCorrect() ? undefined : true}
-								helperText={codeIsCorrect() ? undefined : "This code is malformed. (for some reason this text may not go away even if teh code is correct but its almost 5am again and idek what it's doing)"}
+								helperText={codeIsCorrect() ? undefined : "This code is malformed. (for some reason this text may not go away even if the code is correct but its almost 5am again and idek what it's doing)"}
 								onChange={e => setUuidText(e.target.value)}
 								id="uuid-field"
 								label="Load Existing Submission Code"

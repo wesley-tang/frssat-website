@@ -59,7 +59,7 @@ class SubmissionBase extends Component {
 			username: "",
 			recipient: "",
 			imageUrl: "",
-			secondaryLinks: "",
+			altLinks: "",
 			category: "",
 			message: "",
 			note: "",
@@ -124,9 +124,9 @@ class SubmissionBase extends Component {
 		}
 	}
 
-	setSecondaryImages(e) {
+	setAlternateImages(e) {
 		//todo make this better
-		this.setState({secondaryLinks: e.target.value});
+		this.setState({altLinks: e.target.value});
 	}
 
 	setMessage(e) {
@@ -165,19 +165,19 @@ class SubmissionBase extends Component {
 					username: this.state.username,
 					recipient: this.state.recipient,
 					imageUrl: this.state.imageUrl,
-					secondaryLinks: this.state.secondaryLinks,
+					altLinks: this.state.altLinks,
 					category: this.state.category,
 					message: this.state.message,
 					note: this.state.note,
 					anonymous: this.state.anonymous,
 					nextYear: this.state.nextYear
 				}).then(() => {
-					let submissionsObj = JSON.parse(localStorage.getItem("submissions"));
+					let submissions = JSON.parse(localStorage.getItem("submissions"));
 
-					let existingSub = submissionsObj.submissions.find(s => s.uuid === this.state.uuid);
+					let existingSub = submissions.find(s => s.uuid === this.state.uuid);
 					existingSub.imageUrl = this.state.imageUrl;
 
-					localStorage.setItem("submissions", JSON.stringify(submissionsObj));
+					localStorage.setItem("submissions", JSON.stringify(submissions));
 					this.setState({
 						alertMessage: "Submission updated! To edit this submission again, use the code: " + this.state.uuid,
 						submitted: true, loadingSubmit: false, alertOpen: true
@@ -187,15 +187,15 @@ class SubmissionBase extends Component {
 				const uuid = uuidv4();
 				this.setState({loadingSubmit: true, uuid: uuid}, () => {
 					axios.post("/api/submit", this.state).then(() => {
-						let submissionsObj = JSON.parse(localStorage.getItem("submissions"));
+						let submissions = JSON.parse(localStorage.getItem("submissions"));
 
-						if (submissionsObj === null) {
-							submissionsObj = {"submissions": [{"uuid": uuid, "imageUrl": this.state.imageUrl}]};
+						if (submissions === null) {
+							submissions = [{"uuid": uuid, "imageUrl": this.state.imageUrl, "year": CONFIG.currentYear}];
 						} else {
-							submissionsObj["submissions"].push({"uuid": uuid, "imageUrl": this.state.imageUrl});
+							submissions.push({"uuid": uuid, "imageUrl": this.state.imageUrl, "year": CONFIG.currentYear});
 						}
 
-						localStorage.setItem("submissions", JSON.stringify(submissionsObj));
+						localStorage.setItem("submissions", JSON.stringify(submissions));
 						this.setState({
 							alertMessage: "Submission complete! To edit this submission, use the code: " + uuid,
 							submitted: true
@@ -309,14 +309,14 @@ class SubmissionBase extends Component {
 									</div>
 
 									<div id="secondary-images-field" style={{paddingTop: 2 + '%'}}>
-										<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Secondary Art</strong> (Optional)</p>
+										<p align="left" style={{paddingBottom: 1 + '%'}}><strong>Alternate Version Art</strong> (Optional)</p>
 										<TextField
 												fullWidth
-												value={this.state.secondaryLinks}
+												value={this.state.altLinks}
 												helperText={"If you have any variations or alt versions, include them here in a comma separated list."}
-												onChange={(e) => this.setSecondaryImages(e)}
+												onChange={(e) => this.setAlternateImages(e)}
 												id="image-field"
-												label="Comma Separated List of Secondary Art URLs"
+												label="Comma Separated List of Alternate Art URLs"
 												variant="filled"/>
 									</div>
 
@@ -393,7 +393,7 @@ class SubmissionBase extends Component {
 										>
 											<div className="col d-flex justify-content-start">
 												<NavButton
-														navTo=""
+														navTo="submit"
 														type={""}
 														pageStateKey={"submissionState"}
 														pageState={this.state}
@@ -433,7 +433,7 @@ class SubmissionBase extends Component {
 						</DialogContent>
 						<DialogActions>
 							{this.state.submitted ? (<NavButton
-									navTo=""
+									navTo="submit"
 									type={""}
 									pageStateKey={"submissionState"}
 									pageState={this.state}

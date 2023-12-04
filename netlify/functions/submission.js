@@ -6,8 +6,8 @@ export async function handler(event) {
 		return {statusCode: 405};
 	}
 
-	const doc = new GoogleSpreadsheet(CONFIG.sheetsID);
-	let er = ""
+	const doc = new GoogleSpreadsheet(CONFIG.currentSheetsID);
+
 	await doc.useServiceAccountAuth({
 		"private_key": process.env.PRIVATE_KEY.replaceAll("\\n", "\n"),
 		"client_email": process.env.CLIENT_EMAIL.replaceAll("\\n", "\n")
@@ -24,7 +24,7 @@ export async function handler(event) {
 					username: row.username,
 					recipient: row.recipient,
 					imageUrl: row.imageUrl,
-					secondaryLinks: row.secondaryLinks,
+					altLinks: row.altLinks,
 					category: row.category,
 					message: row.message,
 					note: row.note,
