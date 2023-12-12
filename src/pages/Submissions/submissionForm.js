@@ -49,7 +49,7 @@ class SubmissionBase extends Component {
 			recipientEditable: false,
 			recipientLoading: false,
 			isPrimaryRecipient: false,
-			validImageFileType: true,
+			validImageFileType: "",
 			messageTooLong: false,
 			loadingSubmit: false,
 			alertOpen: false,
@@ -117,11 +117,15 @@ class SubmissionBase extends Component {
 	}
 
 	setImage(e) {
-		if (ACCEPTED_FILE_TYPES.some(s => e.target.value.endsWith(s))) {
-			this.setState({validImageFileType: true, imageUrl: e.target.value});
-		} else {
-			this.setState({validImageFileType: false, imageUrl: e.target.value});
+		let errorText = "";
+		if (!ACCEPTED_FILE_TYPES.some(s => e.target.value.endsWith(s))) {
+			errorText = "Requires URL ending in: apng, avif, gif, jpeg, jpg, png, svg, or webp";
 		}
+		if (e.target.value.includes('cdn.discordapp.com/attachments/')) {
+			errorText = errorText + ". Discord links aren't supported!";
+		}
+
+		this.setState({validImageFileType: errorText === "" ? undefined : errorText, imageUrl: e.target.value});
 	}
 
 	setAlternateImages(e) {
@@ -228,8 +232,8 @@ class SubmissionBase extends Component {
 						<p align="left">
 							Congratulations on finishing your beautiful artwork! Please upload your art to a private site such as
 							&nbsp;<a href={"https://imgur.com/upload"}>https://imgur.com/upload</a>&nbsp;
-							or if you have Discord, upload it to a private channel or DM and copy the link to the image in order to
-							keep the element of surprise!
+							and copy the link to the image in order to keep the element of surprise!
+							NOTE: PLEASE <strong>DO NOT USE DISCORD</strong> as I have previously recommended. Discord has discontinued perma-links to images.
 							<br/><br/>
 							(If you are a traditional artist who wants one of us to touch up your artwork, please do not submit this
 							form yet! Instead, <a href={"https://www1.flightrising.com/msgs/new?to=Hexlash"}>private message Hex</a> a
@@ -293,14 +297,14 @@ class SubmissionBase extends Component {
 													required
 													fullWidth
 													value={this.state.imageUrl}
-													error={this.state.validImageFileType ? undefined : true}
-													helperText={this.state.validImageFileType ? undefined : "Requires URL ending in: apng, avif, gif, jpeg, jpg, png, svg, or webp"}
+													error={this.state.validImageFileType === undefined || this.state.validImageFileType === "" ? undefined : true}
+													helperText={this.state.validImageFileType}
 													onChange={(e) => this.setImage(e)}
 													id="image-field"
 													label="Link to Art"
 													variant="filled"/>
 										</form>
-										{this.state.validImageFileType && this.state.imageUrl !== "" ? (
+										{this.state.validImageFileType === undefined && this.state.imageUrl !== "" && !this.state.imageUrl.includes("cdn.discordapp.com/attachments/") ? (
 												<div className="row justify-content-center">
 													<img src={this.state.imageUrl}
 													     alt="Subject Reference (If you're seeing this alt text, it may be that your link is broken. Make sure it works or else it will not display.)"/>
