@@ -36,7 +36,7 @@ export default function Home() {
 					</div>
 					<div className="row justify-content-center" style={{padding: 0}}>
 						<h1 style={{margin: 0}}>
-							<strong>FLIGHT RISING SECRET SANTA ART TRADE 2023!</strong>
+							<strong>FLIGHT RISING SECRET SANTA ART TRADE {CONFIG.currentYear}!</strong>
 						</h1>
 					</div>
 				</div>
