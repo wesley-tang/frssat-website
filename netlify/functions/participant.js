@@ -13,10 +13,6 @@ export async function handler(event) {
 	}
 
 	const doc = new GoogleSpreadsheet(sheetsId);
-	console.log("1");
-	console.log(process.env.PRIVATE_KEY.replaceAll("\\n", "\n"));
-	console.log("2");
-	console.log(process.env.PRIVATE_KEY.replaceAll("\\n", "\n"));
 
 	await doc.useServiceAccountAuth({
 		"private_key": process.env.PRIVATE_KEY.replaceAll("\\n", "\n"),
