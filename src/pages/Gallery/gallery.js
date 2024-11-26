@@ -6,6 +6,7 @@ import {useSearchParams} from 'react-router-dom';
 import Modal from "react-bootstrap/Modal";
 
 import axios from 'axios';
+import { DateTime } from "luxon";
 import CONFIG from "../../config/CONFIG.json";
 
 import CardActionArea from "@mui/material/CardActionArea";
@@ -28,7 +29,7 @@ export default function Gallery() {
 	const [artCards, setArtCards] = useState([]);
 
 	const [submissions, setSubmissions] = useState([]);
-	const [countdownText, setCountDownText] = useState("");
+	const [countdownText, setCountDownText] = useState("--d --h --m --s");
 	const [currentArt, setCurrentArt] = useState({});
 
 	const [usernameFilter, setUsernameFilter] = useState("");
@@ -40,6 +41,7 @@ export default function Gallery() {
 
 	const [year, setYear] = useState(CONFIG.currentYear);
 
+	const [searchParams] = useSearchParams();
 
 	const handleClose = () => setOpen(false);
 
@@ -126,8 +128,6 @@ export default function Gallery() {
 	useEffect(() => {
 		const filtered = applyFilters();
 		setArtCards(renderCards(filtered));
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [usernameFilter, recipientFilter, categoryFilter]);
 
 	useEffect(() => {
@@ -135,7 +135,6 @@ export default function Gallery() {
 		CONFIG.tags.forEach(tag => tempTags.push(tag.name));
 		setTags(tempTags);
 
-		const [searchParams] = useSearchParams();
 		const paramYear = searchParams.get('year');
 		if (paramYear && Number(paramYear) !== CONFIG.currentYear) {
 			revealArtGallery();
@@ -147,34 +146,40 @@ export default function Gallery() {
 	}, []);
 
 	const prepareCountdownGallery = () => {
-		let currentDate;
-		const endDate = Date.parse(CONFIG.endDate);
+		const endDate = new Date(CONFIG.endDate).getTime();
 
-		axios.get("https://worldtimeapi.org/api/timezone/America/Los_Angeles").then(res => {
-			if (res.data == null) {
-				currentDate = new Date();
-			} else {
-				currentDate = new Date(res.data.unixtime * 1000)
-			}
-
-			if (currentDate >= endDate) {
-				revealArtGallery();
-			} else {
-				const countdown = setInterval(() => {
-					const distance = endDate - currentDate;
-
-					countDownCalc(distance)
-
-					if (distance < 0) {
-						clearInterval(countdown);
-						revealArtGallery();
+		axios.get("https://timeapi.io/api/time/current/zone?timeZone=America/Los_Angeles")
+				.then(res => {
+					return res.data ? new Date(res.data.dateTime) : null;
+				})
+				.catch(() => {
+					return DateTime.now().setZone("America/Los_Angeles").toJSDate();
+				})
+				.then(currentDate => {
+					if (!currentDate) {
+						throw new Error("Failed to fetch or calculate the current date");
 					}
 
-					currentDate.setSeconds(currentDate.getSeconds() + 1);
-				}, 1000);
-			}
-		});
-	}
+					if (currentDate.getTime() >= endDate) {
+						revealArtGallery();
+					} else {
+						const countdown = setInterval(() => {
+							const currentLA = DateTime.now().setZone("America/Los_Angeles");
+							const distance = endDate - currentLA.toMillis();
+
+							countDownCalc(distance);
+
+							if (distance < 0) {
+								clearInterval(countdown);
+								revealArtGallery();
+							}
+						}, 1000);
+					}
+				})
+				.catch(err => {
+					console.error("Error in countdown setup:", err);
+				});
+	};
 
 	return (
 
