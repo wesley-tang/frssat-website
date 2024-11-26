@@ -66,13 +66,13 @@ class TierBase extends Component {
 						<Modal.Body>
 							<img
 									style={{padding: '3%'}}
-									src="https://cdn.discordapp.com/attachments/367956474548322318/631362965135687691/unknown.png"
+									src="https://i.imgur.com/J9nbdQF.png"
 									alt="example"
 							/>
 							<img
 									style={{padding: '3%'}}
 									alt="example"
-									src="https://cdn.discordapp.com/attachments/503665292057116679/635028826820182016/maila600_by_friedsnipe-dcfxin1.png"
+									src="https://i.imgur.com/5n2L3AQ.png"
 							/>
 							<img
 									style={{padding: '3%'}}
@@ -103,27 +103,27 @@ class TierBase extends Component {
 							<img
 									style={{padding: '3%'}}
 									alt="example"
-									src="https://media.discordapp.net/attachments/503665292057116679/635025793420099595/DvaINPUVYAAz_9G.png"
+									src="https://i.imgur.com/nB7Lf9F.png"
 							/>
 							<img
 									style={{padding: '3%'}}
 									alt="example"
-									src="https://cdn.discordapp.com/attachments/568166311687880704/635027821085065232/IMG_20191017_235500.jpg"
+									src="https://i.imgur.com/6HFSzG6.jpeg"
 							/>
 							<img
 									style={{padding: '3%'}}
 									alt="example"
-									src="https://cdn.discordapp.com/attachments/503665292057116679/635030438242418698/120ea90f26a0753f2aa92c2eaba21777.png"
+									src="https://i.imgur.com/NxNeHTv.png"
 							/>
 							<small>
 								Credits respectively: <em>Anonymous</em>, Lizzi, Eversnow, Lizzi
 							</small>
 						</Modal.Body>
 					</Modal>
-					<div class="container-fluid" style={{maxWidth: 970 + 'px'}}>
+					<div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
 						<h1><strong>SPECIFY HOW MUCH TIME YOU WILL COMMIT TO YOUR DRAWING</strong></h1>
 					</div>
-					<div class="container-fluid" style={{maxWidth: 970 + 'px'}}>
+					<div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
 						<p align="left">
 							To alleviate the pressure on those with limited time, and to reassure
 							those that are planning to devote lots of time, there will be two
@@ -150,8 +150,8 @@ class TierBase extends Component {
 							}} variant="text">Tier B Examples</Button>
 						</p>
 					</div>
-					<div class="container-fluid" style={{maxWidth: 970 + 'px'}}>
-						<form class="row justify-content-center" style={{maxWidth: 970 + 'px'}}>
+					<div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
+						<form className="row justify-content-center" style={{maxWidth: 970 + 'px'}}>
 							<FormControl component="fieldset">
 								<FormLabel component="legend">Tier</FormLabel>
 								<RadioGroup
@@ -169,7 +169,7 @@ class TierBase extends Component {
 							</FormControl>
 							<br/>
 							<div
-									class="d-flex justify-content-between container navBtns"
+									className="d-flex justify-content-between container navBtns"
 									style={{maxWidth: 970 + 'px'}}
 							>
 								<div className="col d-flex justify-content-start">
@@ -181,10 +181,10 @@ class TierBase extends Component {
 											text={"Back"}
 											payload={this.state}/>
 								</div>
-								<div class="col my-auto">
+								<div className="col my-auto">
 									3/5
 								</div>
-								<div class="col d-flex justify-content-end">
+								<div className="col d-flex justify-content-end">
 									<NavButton
 											navTo="backup"
 											type={"UPDATE_TIER"}

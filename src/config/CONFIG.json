@@ -30,11 +30,13 @@
       "name": "Feral",
       "id": 4,
       "description": "Anything that does not conform to human proportions (four legged, etc) and lacks human features.\nThis includes non-FR dragons, as well as both real and imagined creatures",
-      "exampleImageUrl": "https://cdn.discordapp.com/attachments/416523883651530752/516647770862387237/unknown.png",
+      "exampleImageUrl": "https://i.imgur.com/K12vbRS.png",
       "imageCredit": "Lizzi"
     }
   ],
   "maxSubjects": 5,
-  "currentSheetsID": "1vu4_vL2ERQ88aVL-3MSRVeWdowArs52EOfclgROuqpU",
-  "sheetsID2022": "1eE2j4gCJzS2chf7aFY7ywlDC6htbcOs61qKNpsEPV1U"
+  "currentSheetsID": "1peo5gkeSMLcEkVmoAlcY2J_MxIXtkoBA46xvkM5yGYk",
+  "sheetsID2023": "1vu4_vL2ERQ88aVL-3MSRVeWdowArs52EOfclgROuqpU",
+  "sheetsID2022": "1eE2j4gCJzS2chf7aFY7ywlDC6htbcOs61qKNpsEPV1U",
+  "validYears": [2022, 2023, 2024]
 }

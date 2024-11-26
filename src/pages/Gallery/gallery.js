@@ -1,21 +1,23 @@
-import {useEffect, useState} from "react";
+import * as React from "react";
+import {useEffect, useState, useCallback} from "react";
+
+import {useSearchParams} from 'react-router-dom';
+
+import Modal from "react-bootstrap/Modal";
 
 import axios from 'axios';
-
+import { DateTime } from "luxon";
 import CONFIG from "../../config/CONFIG.json";
 
 import CardActionArea from "@mui/material/CardActionArea";
-
 import {ImageList, ImageListItem, Paper} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
-import * as React from "react";
 import useWindowDimensions from "../../components/useWindowDimensions";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import Stack from "@mui/material/Stack";
-import Modal from "react-bootstrap/Modal";
 
 
 export default function Gallery() {
@@ -27,7 +29,7 @@ export default function Gallery() {
 	const [artCards, setArtCards] = useState([]);
 
 	const [submissions, setSubmissions] = useState([]);
-	const [countdownText, setCountDownText] = useState("");
+	const [countdownText, setCountDownText] = useState("--d --h --m --s");
 	const [currentArt, setCurrentArt] = useState({});
 
 	const [usernameFilter, setUsernameFilter] = useState("");
@@ -37,13 +39,16 @@ export default function Gallery() {
 	const [participants, setParticipants] = useState([]);
 	const [tags, setTags] = useState([]);
 
+	const [year, setYear] = useState(CONFIG.currentYear);
+
+	const [searchParams] = useSearchParams();
 
 	const handleClose = () => setOpen(false);
 
-	function openArtModal(submission) {
+	const openArtModal = useCallback((submission) => {
 		setCurrentArt(submission);
 		setOpen(true);
-	}
+	}, []);
 
 	function countDownCalc(distance) {
 		const days = Math.floor(distance / (1000 * 60 * 60 * 24));
@@ -72,28 +77,26 @@ export default function Gallery() {
 		}
 	}
 
-	function applyFilters() {
+	const applyFilters = useCallback(() => {
 		let filteredSubmissions = [...submissions];
 
-		if (usernameFilter !== "" && usernameFilter !== null) {
+		if (usernameFilter) {
 			filteredSubmissions = filteredSubmissions.filter(submission => submission.username === usernameFilter);
 		}
-		if (recipientFilter !== "" && recipientFilter !== null) {
+		if (recipientFilter) {
 			filteredSubmissions = filteredSubmissions.filter(submission => submission.recipient === recipientFilter);
 		}
-		if (categoryFilter !== "" && categoryFilter !== null) {
+		if (categoryFilter) {
 			filteredSubmissions = filteredSubmissions.filter(submission => submission.category === categoryFilter);
 		}
 
 		return filteredSubmissions;
-	}
+	}, [submissions, usernameFilter, recipientFilter, categoryFilter]);
 
-	function renderCards(submissionsToRender) {
-		const artCardsTemp = [];
-
-		submissionsToRender.forEach(submission => artCardsTemp.push(
-				<CardActionArea onClick={() => openArtModal(submission)}>
-					<ImageListItem key={submission.imageUrl}>
+	const renderCards = useCallback((submissionsToRender) => {
+		return submissionsToRender.map(submission => (
+				<CardActionArea key={submission.imageUrl} onClick={() => openArtModal(submission)}>
+					<ImageListItem>
 						<img
 								src={`${submission.imageUrl}?w=248&fit=crop&auto=format`}
 								loading="lazy"
@@ -102,17 +105,21 @@ export default function Gallery() {
 					</ImageListItem>
 				</CardActionArea>
 		));
+	}, [openArtModal]);
 
-		return artCardsTemp;
-	}
+	useEffect(() => {
+		const filtered = applyFilters();
+		setArtCards(renderCards(filtered));
+	}, [applyFilters, renderCards]);
+
 
 	function revealArtGallery() {
 		setRevealArt(true);
 
-		axios.get(`/api/participants`).then(res => {
+		axios.get(`/api/participants`, { params: { year: year }}).then(res => {
 			setParticipants(res.data.participants);
 
-			axios.get('/api/submissions').then(resSub => {
+			axios.get('/api/submissions', { params: { year: year }}).then(resSub => {
 				setSubmissions(resSub.data.submissions);
 				setArtCards(renderCards(resSub.data.submissions));
 				setArtLoaded(true);
@@ -121,52 +128,61 @@ export default function Gallery() {
 	}
 
 	useEffect(() => {
-		const filtered = applyFilters();
-		setArtCards(renderCards(filtered));
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [usernameFilter, recipientFilter, categoryFilter]);
-
-	useEffect(() => {
 		let tempTags = [];
 		CONFIG.tags.forEach(tag => tempTags.push(tag.name));
 		setTags(tempTags);
 
-		let currentDate;
-		const endDate = Date.parse(CONFIG.endDate);
-
-		axios.get("https://worldtimeapi.org/api/timezone/America/Los_Angeles").then(res => {
-			if (res.data == null) {
-				currentDate = new Date();
-			} else {
-				currentDate = new Date(res.data.unixtime * 1000)
-			}
-
-			if (currentDate >= endDate) {
-				revealArtGallery();
-			} else {
-				const countdown = setInterval(() => {
-					const distance = endDate - currentDate;
-
-					countDownCalc(distance)
-
-					if (distance < 0) {
-						clearInterval(countdown);
-						revealArtGallery();
-					}
-
-					currentDate.setSeconds(currentDate.getSeconds() + 1);
-				}, 1000);
-			}
-		});
+		const paramYear = searchParams.get('year');
+		if (paramYear && Number(paramYear) !== CONFIG.currentYear) {
+			revealArtGallery();
+			setYear(Number(paramYear));
+		} else {
+			prepareCountdownGallery();
+		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
+
+	const prepareCountdownGallery = () => {
+		const endDate = new Date(CONFIG.endDate).getTime();
+
+		axios.get("https://timeapi.io/api/time/current/zone?timeZone=America/Los_Angeles")
+				.then(res => {
+					return res.data ? new Date(res.data.dateTime) : null;
+				})
+				.catch(() => {
+					return DateTime.now().setZone("America/Los_Angeles").toJSDate();
+				})
+				.then(currentDate => {
+					if (!currentDate) {
+						throw new Error("Failed to fetch or calculate the current date");
+					}
+
+					if (currentDate.getTime() >= endDate) {
+						revealArtGallery();
+					} else {
+						const countdown = setInterval(() => {
+							const currentLA = DateTime.now().setZone("America/Los_Angeles");
+							const distance = endDate - currentLA.toMillis();
+
+							countDownCalc(distance);
+
+							if (distance < 0) {
+								clearInterval(countdown);
+								revealArtGallery();
+							}
+						}, 1000);
+					}
+				})
+				.catch(err => {
+					console.error("Error in countdown setup:", err);
+				});
+	};
 
 	return (
 
 			<div className="galleryPage">
 				<div className="container-fluid" style={{maxWidth: 970 + 'px', paddingTop: 2 + "%"}}>
-					<h1 style={{margin: 0}}><strong>FRSSAT 2023 GALLERY</strong></h1>
+					<h1 style={{margin: 0}}><strong>{`FRSSAT ${year} GALLERY`}</strong></h1>
 				</div>
 				{revealArt ? artLoaded ? (
 						<div className="container-fluid" style={{paddingTop: 2 + '%'}}>
