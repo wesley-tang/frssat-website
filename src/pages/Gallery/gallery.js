@@ -1,5 +1,5 @@
 import * as React from "react";
-import {useEffect, useState} from "react";
+import {useEffect, useState, useCallback} from "react";
 
 import {useSearchParams} from 'react-router-dom';
 
@@ -45,10 +45,10 @@ export default function Gallery() {
 
 	const handleClose = () => setOpen(false);
 
-	function openArtModal(submission) {
+	const openArtModal = useCallback((submission) => {
 		setCurrentArt(submission);
 		setOpen(true);
-	}
+	}, []);
 
 	function countDownCalc(distance) {
 		const days = Math.floor(distance / (1000 * 60 * 60 * 24));
@@ -77,28 +77,26 @@ export default function Gallery() {
 		}
 	}
 
-	function applyFilters() {
+	const applyFilters = useCallback(() => {
 		let filteredSubmissions = [...submissions];
 
-		if (usernameFilter !== "" && usernameFilter !== null) {
+		if (usernameFilter) {
 			filteredSubmissions = filteredSubmissions.filter(submission => submission.username === usernameFilter);
 		}
-		if (recipientFilter !== "" && recipientFilter !== null) {
+		if (recipientFilter) {
 			filteredSubmissions = filteredSubmissions.filter(submission => submission.recipient === recipientFilter);
 		}
-		if (categoryFilter !== "" && categoryFilter !== null) {
+		if (categoryFilter) {
 			filteredSubmissions = filteredSubmissions.filter(submission => submission.category === categoryFilter);
 		}
 
 		return filteredSubmissions;
-	}
+	}, [submissions, usernameFilter, recipientFilter, categoryFilter]);
 
-	function renderCards(submissionsToRender) {
-		const artCardsTemp = [];
-
-		submissionsToRender.forEach(submission => artCardsTemp.push(
-				<CardActionArea onClick={() => openArtModal(submission)}>
-					<ImageListItem key={submission.imageUrl}>
+	const renderCards = useCallback((submissionsToRender) => {
+		return submissionsToRender.map(submission => (
+				<CardActionArea key={submission.imageUrl} onClick={() => openArtModal(submission)}>
+					<ImageListItem>
 						<img
 								src={`${submission.imageUrl}?w=248&fit=crop&auto=format`}
 								loading="lazy"
@@ -107,9 +105,13 @@ export default function Gallery() {
 					</ImageListItem>
 				</CardActionArea>
 		));
+	}, [openArtModal]);
 
-		return artCardsTemp;
-	}
+	useEffect(() => {
+		const filtered = applyFilters();
+		setArtCards(renderCards(filtered));
+	}, [applyFilters, renderCards]);
+
 
 	function revealArtGallery() {
 		setRevealArt(true);
@@ -124,11 +126,6 @@ export default function Gallery() {
 			});
 		});
 	}
-
-	useEffect(() => {
-		const filtered = applyFilters();
-		setArtCards(renderCards(filtered));
-	}, [usernameFilter, recipientFilter, categoryFilter]);
 
 	useEffect(() => {
 		let tempTags = [];
