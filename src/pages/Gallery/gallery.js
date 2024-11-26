@@ -1,21 +1,22 @@
+import * as React from "react";
 import {useEffect, useState} from "react";
 
-import axios from 'axios';
+import {useSearchParams} from 'react-router-dom';
 
+import Modal from "react-bootstrap/Modal";
+
+import axios from 'axios';
 import CONFIG from "../../config/CONFIG.json";
 
 import CardActionArea from "@mui/material/CardActionArea";
-
 import {ImageList, ImageListItem, Paper} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
-import * as React from "react";
 import useWindowDimensions from "../../components/useWindowDimensions";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import Stack from "@mui/material/Stack";
-import Modal from "react-bootstrap/Modal";
 
 
 export default function Gallery() {
@@ -36,6 +37,8 @@ export default function Gallery() {
 
 	const [participants, setParticipants] = useState([]);
 	const [tags, setTags] = useState([]);
+
+	const [year, setYear] = useState(CONFIG.currentYear);
 
 
 	const handleClose = () => setOpen(false);
@@ -109,10 +112,10 @@ export default function Gallery() {
 	function revealArtGallery() {
 		setRevealArt(true);
 
-		axios.get(`/api/participants`).then(res => {
+		axios.get(`/api/participants`, { params: { year: year }}).then(res => {
 			setParticipants(res.data.participants);
 
-			axios.get('/api/submissions').then(resSub => {
+			axios.get('/api/submissions', { params: { year: year }}).then(resSub => {
 				setSubmissions(resSub.data.submissions);
 				setArtCards(renderCards(resSub.data.submissions));
 				setArtLoaded(true);
@@ -132,6 +135,18 @@ export default function Gallery() {
 		CONFIG.tags.forEach(tag => tempTags.push(tag.name));
 		setTags(tempTags);
 
+		const [searchParams] = useSearchParams();
+		const paramYear = searchParams.get('year');
+		if (paramYear && Number(paramYear) !== CONFIG.currentYear) {
+			revealArtGallery();
+			setYear(Number(paramYear));
+		} else {
+			prepareCountdownGallery();
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	const prepareCountdownGallery = () => {
 		let currentDate;
 		const endDate = Date.parse(CONFIG.endDate);
 
@@ -159,14 +174,13 @@ export default function Gallery() {
 				}, 1000);
 			}
 		});
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}
 
 	return (
 
 			<div className="galleryPage">
 				<div className="container-fluid" style={{maxWidth: 970 + 'px', paddingTop: 2 + "%"}}>
-					<h1 style={{margin: 0}}><strong>FRSSAT 2023 GALLERY</strong></h1>
+					<h1 style={{margin: 0}}><strong>{`FRSSAT ${year} GALLERY`}</strong></h1>
 				</div>
 				{revealArt ? artLoaded ? (
 						<div className="container-fluid" style={{paddingTop: 2 + '%'}}>

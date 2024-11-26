@@ -16,7 +16,6 @@ import {Finish} from "./pages/SignUps/finish";
 import Submissions from "./pages/Submissions/submissions";
 import {Submission} from "./pages/Submissions/submissionForm";
 import Gallery from "./pages/Gallery/gallery";
-import Gallery2022 from "./pages/Gallery/gallery2022";
 
 const store = createStore(formState, applyMiddleware(thunk));
 
@@ -36,7 +35,6 @@ function App() {
 							<Route path="/submit" element={<Submissions/>}/>
 							<Route path="/submissionForm" element={<Submission/>}/>
 							<Route path="/gallery" element={<Gallery/>}/>
-							<Route path="/gallery/2022" element={<Gallery2022/>}/>
 						</Routes>
 					</div>
 				</Router>
