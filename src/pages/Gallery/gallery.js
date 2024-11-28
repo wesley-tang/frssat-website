@@ -6,7 +6,7 @@ import {useSearchParams} from 'react-router-dom';
 import Modal from "react-bootstrap/Modal";
 
 import axios from 'axios';
-import { DateTime } from "luxon";
+import {DateTime} from "luxon";
 import CONFIG from "../../config/CONFIG.json";
 
 import CardActionArea from "@mui/material/CardActionArea";
@@ -113,13 +113,15 @@ export default function Gallery() {
 	}, [applyFilters, renderCards]);
 
 
-	function revealArtGallery() {
+	function revealArtGallery(currentYear) {
 		setRevealArt(true);
 
-		axios.get(`/api/participants`, { params: { year: year }}).then(res => {
+		const params = currentYear ? { year: currentYear } : {};
+
+		axios.get(`/api/participants`, {params}).then(res => {
 			setParticipants(res.data.participants);
 
-			axios.get('/api/submissions', { params: { year: year }}).then(resSub => {
+			axios.get('/api/submissions', {params}).then(resSub => {
 				setSubmissions(resSub.data.submissions);
 				setArtCards(renderCards(resSub.data.submissions));
 				setArtLoaded(true);
@@ -133,9 +135,10 @@ export default function Gallery() {
 		setTags(tempTags);
 
 		const paramYear = searchParams.get('year');
+
 		if (paramYear && Number(paramYear) !== CONFIG.currentYear) {
-			revealArtGallery();
 			setYear(Number(paramYear));
+			revealArtGallery(paramYear);
 		} else {
 			prepareCountdownGallery();
 		}
@@ -188,45 +191,46 @@ export default function Gallery() {
 						<div className="container-fluid" style={{paddingTop: 2 + '%'}}>
 							<div className="container-fluid" style={{paddingTop: 2 + '%'}}>
 								<p style={{maxWidth: 750 + 'px'}}>
-									Click/Tap on an image to view it in full with additional information! To find your own gifts, select your name in the "Filter by Recipient" box.
+									Click/Tap on an image to view it in full with additional information! To find your own gifts, select
+									your name in the "Filter by Recipient" box.
 								</p>
 							</div>
 							<div className="container-fluid" style={{paddingTop: 2 + '%', paddingBottom: 4 + '%'}}>
 								<Stack spacing={5}
-								       direction={{ xs: 'column', sm: 'row' }}
+								       direction={{xs: 'column', sm: 'row'}}
 								>
-								<Autocomplete
-										onChange={(e, newValue) => setUserName(e, newValue)}
-										clearOnEscape
-										fullWidth
-										disablePortal
-										id="username-box"
-										options={artLoaded ? participants : []}
-										renderInput={(params) =>
-												<TextField {...params} label="Filter by Artist"/>}
-								/>
-								<Autocomplete
-										onChange={(e, newValue) => setRecipient(e, newValue)}
-										clearOnEscape
-										fullWidth
-										disablePortal
-										id="recipient-box"
-										options={artLoaded ? participants : []}
-										renderInput={(params) =>
-												<TextField {...params} label="Filter by Recipient"/>}
-								/>
+									<Autocomplete
+											onChange={(e, newValue) => setUserName(e, newValue)}
+											clearOnEscape
+											fullWidth
+											disablePortal
+											id="username-box"
+											options={artLoaded ? participants : []}
+											renderInput={(params) =>
+													<TextField {...params} label="Filter by Artist"/>}
+									/>
+									<Autocomplete
+											onChange={(e, newValue) => setRecipient(e, newValue)}
+											clearOnEscape
+											fullWidth
+											disablePortal
+											id="recipient-box"
+											options={artLoaded ? participants : []}
+											renderInput={(params) =>
+													<TextField {...params} label="Filter by Recipient"/>}
+									/>
 
-								<Autocomplete
-										onChange={(e, newValue) => setCategory(e, newValue)}
-										clearOnEscape
-										fullWidth
-										disablePortal
-										id="category-box"
-										options={tags}
-										renderInput={(params) =>
-												<TextField {...params} label="Filter by Category"/>}
-								/>
-							</Stack>
+									<Autocomplete
+											onChange={(e, newValue) => setCategory(e, newValue)}
+											clearOnEscape
+											fullWidth
+											disablePortal
+											id="category-box"
+											options={tags}
+											renderInput={(params) =>
+													<TextField {...params} label="Filter by Category"/>}
+									/>
+								</Stack>
 							</div>
 							<div className="container-fluid">
 								<ImageList variant="masonry" cols={width > 1300 ? 6 : width > 1000 ? 5 : width > 650 ? 4 : 3} gap={10}>
@@ -254,10 +258,10 @@ export default function Gallery() {
 					<Modal.Header closeButton>
 					</Modal.Header>
 					<Modal.Body>
-						<Stack direction={{ md: 'column', lg: 'row' }} spacing={7}>
+						<Stack direction={{md: 'column', lg: 'row'}} spacing={7}>
 							<img
 									src={currentArt.imageUrl}
-									style={{maxWidth: (width < 900 ? 100 : 75) + "%",  paddingTop: 2 + '%'}}
+									style={{maxWidth: (width < 900 ? 100 : 75) + "%", paddingTop: 2 + '%'}}
 									alt={`${currentArt.username}'s art to ${currentArt.recipient}`}
 							/>
 							<div>
