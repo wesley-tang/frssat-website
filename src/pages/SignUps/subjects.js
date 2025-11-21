@@ -172,13 +172,16 @@ export function Subjects() {
 		setUsableTags(remainingTags);
 		setSubjectName(subject.name);
 
+		// Helper to refresh tags with latest config (e.g. required status)
+		const refreshTags = (tags) => tags.map(t => baseTags.find(bt => bt.id === t.id) || t);
+
 		// Migration Logic
 		if (subject.mainTags) {
-			setSubjectMainTags(subject.mainTags);
-			setSubjectOptionalTags(subject.optionalTags || []);
+			setSubjectMainTags(refreshTags(subject.mainTags));
+			setSubjectOptionalTags(refreshTags(subject.optionalTags || []));
 		} else {
 			// Legacy: Move all to Main
-			setSubjectMainTags(subject.tags || []);
+			setSubjectMainTags(refreshTags(subject.tags || []));
 			setSubjectOptionalTags([]);
 		}
 
