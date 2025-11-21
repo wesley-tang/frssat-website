@@ -2,8 +2,4 @@ node_modules
 
 # Local Netlify folder
 .netlify
-.idea/frssat2021.iml
-.idea/misc.xml
-.idea/modules.xml
-.idea/vcs.xml
-.idea/codeStyles/codeStyleConfig.xml
+.idea
