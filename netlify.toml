@@ -11,3 +11,8 @@ status = 200
 [functions]
 # Specifies `esbuild` for functions bundling
 node_bundler = "esbuild"
+
+[dev]
+  command = "npm start"   # The command that starts your React app
+  targetPort = 3000       # The port React is running on
+  port = 8888             # The port you will visit in the browser (localhost:8888)

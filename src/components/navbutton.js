@@ -1,5 +1,5 @@
-import {useNavigate} from "react-router-dom";
-import {useDispatch} from 'react-redux'
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from 'react-redux'
 import Button from '@mui/material/Button';
 
 export default function NavButton(props) {
@@ -16,21 +16,23 @@ export default function NavButton(props) {
 				console.warn("FAILED TO SAVE STATE. PROGRESS NOT SAVED.")
 			}
 		}
-		dispatch({type: props.type, payload: props.payload});
+		if (props.type) {
+			dispatch({ type: props.type, payload: props.payload });
+		}
 		navigate(`/${props.navTo}`);
 	}
 
 	return (
-			<div className="buttonComponent">
-				<Button
-						id="submitUserAndPassForm"
-						onClick={handleClick}
-						variant={props.text === undefined ? "contained" : "outlined"}
-						color={props.text === undefined ? "success" : "error"}
-						{...props.passThrough || {}}
-				>
-					{props.text === undefined ? "Next" : props.text}
-				</Button>
-			</div>
+		<div className="buttonComponent">
+			<Button
+				id="submitUserAndPassForm"
+				onClick={handleClick}
+				variant={props.text === undefined ? "contained" : "outlined"}
+				color={props.text === undefined ? "success" : "error"}
+				{...props.passThrough || {}}
+			>
+				{props.text === undefined ? "Next" : props.text}
+			</Button>
+		</div>
 	);
 }

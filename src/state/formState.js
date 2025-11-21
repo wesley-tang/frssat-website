@@ -1,6 +1,8 @@
+import { v4 as uuidv4 } from 'uuid';
+
 const INITIAL_STATE = {
   username: "",
-  userid: "",
+  userId: "",
   prefsByTier: {
     prefer: [],
     willing: [],
@@ -11,14 +13,48 @@ const INITIAL_STATE = {
   highTier: true,
   backupSanta: false,
   additionalInfo: "",
-  submissionUuid: ""
+  signupUuid: ""
 };
 
 export function loadFinalText() {
-  return dispatch => {
-    dispatch({
-      type: "LOAD_FINAL_TEXT"
-    });
+  // This thunk now receives dispatch and getState
+  return (dispatch, getState) => {
+    const currentState = getState().formState;
+
+    // 1. --- THIS IS THE FIX ---
+    // We check for "empty" state *here in the thunk*, not in the reducer.
+    if (currentState.prefsByTier.prefer.length === 0 && currentState.subjects.length === 0) {
+      try {
+        const prefState = JSON.parse(localStorage.getItem("prefState"));
+        const subjectState = JSON.parse(localStorage.getItem("subjectState"));
+        const signupUuid = localStorage.getItem("signupUuid");
+
+        if (prefState || subjectState || signupUuid) {
+          // 2. Dispatch a NEW action to load this data
+          dispatch({
+            type: "RELOAD_STATE_FROM_STORAGE",
+            payload: { prefState, subjectState, signupUuid }
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to reload state from local storage.", e);
+      }
+    }
+
+    // Check for UUID again after potential reload
+    const updatedState = getState().formState;
+    if (!updatedState.signupUuid) {
+      const newUuid = uuidv4();
+      localStorage.setItem("signupUuid", newUuid);
+      dispatch({
+        type: "SET_SIGNUP_UUID",
+        payload: { uuid: newUuid }
+      });
+    }
+
+    // 3. Finally, dispatch the original action.
+    // The reducer for this is now guaranteed to be pure.
+    dispatch({ type: "LOAD_FINAL_TEXT" });
   };
 }
 
@@ -32,16 +68,14 @@ export function reset() {
 
 export function formState(state = INITIAL_STATE, action) {
   switch (action.type) {
+    case "SET_SIGNUP_UUID":
+      return { ...state, signupUuid: action.payload.uuid };
     case "SET_UUID":
-      return { ...state, uuid: action.payload.uuid};
+      return { ...state, uuid: action.payload.uuid };
     case "UPDATE_PREFERENCES":
-      let prefs = action.payload.prefsByTier;
-      prefs.banned = prefs.banned.concat(action.payload.remainingTags);
-      console.log('prefs')
-      console.log(prefs)
       return {
         ...state,
-        prefsByTier: prefs
+        prefsByTier: action.payload.prefsByTier
       };
     case "UPDATE_SUBJECTS":
       return { ...state, subjects: action.payload.subjects, noRanking: action.payload.noRanking };
@@ -51,6 +85,16 @@ export function formState(state = INITIAL_STATE, action) {
       return { ...state, additionalInfo: action.payload.infoField };
     case "UPDATE_TIER":
       return { ...state, highTier: action.payload.tier === "a" };
+    case "RELOAD_STATE_FROM_STORAGE": {
+      const { prefState, subjectState, signupUuid } = action.payload;
+      return {
+        ...state,
+        prefsByTier: prefState ? { ...state.prefsByTier, ...prefState.tagsInTier } : state.prefsByTier,
+        subjects: subjectState ? subjectState.subjects : state.subjects,
+        noRanking: subjectState ? subjectState.noRanking : state.noRanking,
+        signupUuid: signupUuid || state.signupUuid
+      };
+    }
     case "LOAD_FINAL_TEXT":
       return { ...state, finalText: generateCopyText(state) };
     case "RESET":
@@ -61,89 +105,15 @@ export function formState(state = INITIAL_STATE, action) {
 }
 
 function generateCopyText(state) {
-  verifyFormIntegrity(state);
-
   return `[b][size=4]Information for your Secret Santa:[/size][/b]
 ${state.additionalInfo}
 
 [b][size=4]Subjects[/size][/b]:
 ${generateSubjectText(state.subjects, state.noRanking)}
 
-[size=1]~/${generateCode(state)}/~[/size]`;
+[size=0]${state.signupUuid}[/size]`;
 }
 
-function verifyFormIntegrity(state) {
-  console.log(state.prefsByTier)
-  if (state.prefsByTier.prefer.length === 0 && state.prefsByTier.willing.length === 0 && state.prefsByTier.banned.length === 0) {
-    try {
-      let prefState = JSON.parse(localStorage.getItem("prefState"));
-      console.log('prefState')
-      console.log(prefState)
-      state.prefsByTier = prefState.tagsInTier;
-      state.prefsByTier.banned = state.prefsByTier.banned.concat(prefState.usableTags);
-      console.log(state.prefsByTier)
-    } catch (e) {
-      console.warn("FAILED TO LOAD PREFS FROM LOCAL STORAGE.")
-    }
-  }
-
-  if (state.subjects.length === 0) {
-    try {
-      let subjectState = JSON.parse(localStorage.getItem("subjectState"));
-      state.subjects = subjectState.subjects;
-      state.noRanking = subjectState.noRanking;
-    } catch (e) {
-      console.warn("FAILED TO LOAD subjects FROM LOCAL STORAGE.")
-    }
-  }
-}
-
-function generateCode(state) {
-  let code = "";
-
-  // Could condense down to a single nested for loop using key value but that looks gross
-  if (state.prefsByTier.prefer.length > 0) {
-    code += "p";
-    state.prefsByTier.prefer.forEach(tag => { code += tag.id })
-  }
-
-  if (state.prefsByTier.willing.length > 0) {
-    code += "w";
-    state.prefsByTier.willing.forEach(tag => { code += tag.id })
-  }
-
-  if (state.prefsByTier.banned.length > 0) {
-    code += "b";
-    state.prefsByTier.banned.forEach(tag => { code += tag.id })
-  }
-
-
-  code += "S";
-  state.subjects.forEach(subject => {
-    code += (state.noRanking ? "n" : "r" + subject.position) + "T";
-    subject.tags.forEach(tag => {
-      code += tag.id
-    })
-    code += "|"
-  })
-  code += "S";
-
-  code += "t";
-  if (state.highTier) {
-    code += "1";
-  } else {
-    code += "0";
-  }
-
-  code += "s";
-  if (state.backupSanta) {
-    code += "1";
-  } else {
-    code += "0";
-  }
-
-  return code;
-}
 
 function generateSubjectText(subjects, noRanking) {
   let subjectsText = "";
@@ -166,9 +136,16 @@ ${noRanking ? "" : `[color=Darkred][b]PRIORITY:[/b][/color] ${getOrdinal(subject
     subjectsText += "\n[color=Darkred][b]I would like to receive this type of art for this subject:[/b][/color] ";
 
     let tags = []
-    subject.tags.forEach(tag => {
-      tags.push(tag.name);
-    })
+    if (subject.mainTags) {
+      subject.mainTags.forEach(tag => tags.push(tag.name));
+    }
+    if (subject.optionalTags) {
+      subject.optionalTags.forEach(tag => tags.push(tag.name));
+    }
+    // Fallback for legacy subjects if needed
+    if (!subject.mainTags && !subject.optionalTags && subject.tags) {
+      subject.tags.forEach(tag => tags.push(tag.name));
+    }
     subjectsText += tags.join(", ");
 
     subjectsText += `\n[b]Any additional notes for this subject:[/b] ${subject.info}`

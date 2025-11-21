@@ -1,44 +1,28 @@
-import {React} from "react";
-import {createStore, applyMiddleware} from "redux";
-import {Provider} from "react-redux";
-import thunk from "redux-thunk";
+import React from "react";
 import "./css/App.css";
-import {Route, Routes, BrowserRouter as Router} from "react-router-dom";
-import {formState} from "./state/formState";
+import { Routes, Route } from 'react-router-dom';
 
-import Home from "./pages/SignUps/home";
-import {Preferences} from "./pages/SignUps/preferences";
-import {Subjects} from "./pages/SignUps/subjects";
-import {Tier} from "./pages/SignUps/tier";
-import {Backup} from "./pages/SignUps/backup";
-import {Info} from "./pages/SignUps/info";
-import {Finish} from "./pages/SignUps/finish";
-import Submissions from "./pages/Submissions/submissions";
-import {Submission} from "./pages/Submissions/submissionForm";
-import Gallery from "./pages/Gallery/gallery";
-
-const store = createStore(formState, applyMiddleware(thunk));
+// Import your page components
+import { SignupWizard } from './pages/SignUps/SignupWizard';
+import SignupStart from './pages/SignUps/SignupStart';
+import Gallery from './pages/Gallery/gallery';
+import { Submission as SubmissionForm } from './pages/Submissions/submissionForm';
+import Submissions from './pages/Submissions/submissions';
 
 function App() {
 	return (
-			<Provider store={store}>
-				<Router>
-					<div className="App">
-						<Routes>
-							<Route path="/" element={<Home/>}/>
-							<Route path="/preferences" element={<Preferences/>}/>
-							<Route path="/subjects" element={<Subjects/>}/>
-							<Route path="/tier" element={<Tier/>}/>
-							<Route path="/backup" element={<Backup/>}/>
-							<Route path="/info" element={<Info/>}/>
-							<Route path="/finish" element={<Finish/>}/>
-							<Route path="/submit" element={<Submissions/>}/>
-							<Route path="/submissionForm" element={<Submission/>}/>
-							<Route path="/gallery" element={<Gallery/>}/>
-						</Routes>
-					</div>
-				</Router>
-			</Provider>
+		<div className="App">
+			{/* <Navbar /> */}
+			<Routes>
+				<Route exact path="/" element={<SignupStart />} />
+				<Route path="/signup/*" element={<SignupWizard />} />
+				<Route path="/gallery" element={<Gallery />} />
+				<Route path="/submit" element={<SubmissionForm />} />
+				<Route path="/submissions" element={<Submissions />} />
+				{/* <Route path="/rules" element={<Rules />} /> */}
+				{/* <Route path="/faq" element={<Faq />} /> */}
+			</Routes>
+		</div>
 	);
 }
 

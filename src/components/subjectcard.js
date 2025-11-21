@@ -1,26 +1,23 @@
-import {Component} from "react";
+import { Component } from "react";
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardActionArea from '@mui/material/CardActionArea';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import ArrowCircleUpIcon from '@mui/icons-material/ArrowCircleUp';
-import ArrowCircleDownIcon from '@mui/icons-material/ArrowCircleDown';
 import Chip from '@mui/material/Chip';
-import Stack from '@mui/material/Stack';
+import DragHandleIcon from '@mui/icons-material/DragHandle';
 
 export class SubjectCard extends Component {
 	renderImage() {
-		if (this.props.subject.imageUrl !== undefined && (this.props.subject.imageUrl.endsWith("png") || this.props.subject.imageUrl.endsWith("jpg"))) {
+		if (this.props.subject.imageUrl !== undefined && (this.props.subject.imageUrl.endsWith("png") || this.props.subject.imageUrl.endsWith("jpg") || this.props.subject.imageUrl.endsWith("gif"))) {
 			return (
-					<CardMedia
-							component="img"
-							alt="subject image"
-							height="140"
-							image={this.props.subject.imageUrl}
-					/>
+				<CardMedia
+					component="img"
+					alt="subject image"
+					height="140"
+					image={this.props.subject.imageUrl}
+				/>
 			);
 		}
 		return null;
@@ -31,28 +28,64 @@ export class SubjectCard extends Component {
 			return null;
 		}
 		return (
-				<Typography variant="body2" color="text.secondary">
-					{this.props.subject.info}
-				</Typography>
+			<Typography variant="body2" color="text.secondary" sx={{ marginBottom: '8px' }}>
+				{this.props.subject.info}
+			</Typography>
 		);
 	}
 
 	getSx() {
 		if (this.props.subject.imageUrl === undefined || !(this.props.subject.imageUrl.endsWith("png") || this.props.subject.imageUrl.endsWith("jpg") || this.props.subject.imageUrl.endsWith("gif"))) {
-			return {sx: {height: (this.props.noRanking ? 100 : 70) + '%'}}
+			return { sx: { height: (this.props.noRanking ? 100 : 70) + '%' } }
 		}
 	}
 
 	getChips() {
-		let chips = [];
+		if (!this.props.subject.mainTags) {
+			return (
+				<Typography variant="body2" sx={{ color: 'error.main', fontWeight: 'bold' }}>
+					Tags need update! Tap to fix.
+				</Typography>
+			);
+		}
 
-		this.props.subject.tags.forEach(tag => {
+		let chips = [];
+		const mainTags = this.props.subject.mainTags || [];
+		const optionalTags = this.props.subject.optionalTags || [];
+		const allTags = [...mainTags.map(t => ({ ...t, type: 'main' })), ...optionalTags.map(t => ({ ...t, type: 'optional' }))];
+
+		allTags.forEach((tag, index) => {
 			chips.push(
-					<Chip label={tag.name} size="small"/>
+				<Chip
+					key={index}
+					label={tag.name.replace(/\s/g, '').substring(0, 3)}
+					size="small"
+					variant={tag.type === 'main' ? "filled" : "outlined"}
+					sx={{
+						fontWeight: tag.required ? '600' : 'normal',
+						backgroundColor: tag.type === 'main' ? '#bdbdbd' : undefined
+					}}
+				/>
 			)
 		});
 
-		return chips;
+		return (
+			<div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', justifyContent: 'center', marginBottom: '-8px' }}>
+				{chips}
+			</div>
+		);
+	}
+
+	getOrdinal(n) {
+		n += 1;
+		let s = ["th", "st", "nd", "rd"];
+		let v = n % 100;
+		const suffix = (s[(v - 20) % 10] || s[v] || s[0]);
+		return (
+			<span>
+				{n}<sup>{suffix}</sup>
+			</span>
+		);
 	}
 
 	renderRanker() {
@@ -61,59 +94,52 @@ export class SubjectCard extends Component {
 		}
 
 		return (
-				<CardActions>
-					<div className="container">
-						<div className="row">
-							<div className="col d-flex justify-content-start">
-								<IconButton disabled={this.props.subject.position === 0}
-								            onClick={this.props.handleUpvoteClick}>
-									<ArrowCircleUpIcon fontSize="large"
-									                   color={this.props.subject.position === 0 ? "disabled" : "primary"}/>
-								</IconButton>
-							</div>
-							<Typography gutterBottom variant="h5" className="col d-flex justify-content-center"
-							            sx={{marginBottom: '0', paddingTop: '12px', paddingBottom: '12px'}}>
-								{this.getOrdinal(this.props.subject.position)}
-							</Typography>
-							<div className="col d-flex justify-content-end">
-								<IconButton disabled={this.props.subject.position === this.props.numOfCards - 1}
-								            onClick={this.props.handleDownvoteClick}>
-									<ArrowCircleDownIcon fontSize="large"
-									                     color={this.props.subject.position === this.props.subject.numOfCards - 1 ? "warning" : "inherit"}/>
-								</IconButton>
-							</div>
-						</div>
-					</div>
-				</CardActions>
+			<CardActions
+				disableSpacing
+				{...this.props.dragHandleProps}
+				sx={{
+					justifyContent: 'center',
+					padding: '8px',
+					backgroundColor: '#f5f5f5',
+					cursor: 'grab',
+					borderTop: '1px solid #e0e0e0',
+					'&:active': { cursor: 'grabbing' }
+				}}
+			>
+				<div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'text.secondary' }}>
+					<DragHandleIcon color="action" />
+					<Typography variant="h6" component="div" sx={{ display: 'flex', alignItems: 'baseline' }}>
+						{this.getOrdinal(this.props.subject.position)}
+					</Typography>
+					<DragHandleIcon color="action" />
+				</div>
+			</CardActions>
 		)
-	}
-
-	getOrdinal(n) {
-		n += 1;
-		let s = ["th", "st", "nd", "rd"];
-		let v = n % 100;
-		return n + (s[(v - 20) % 10] || s[v] || s[0]);
 	}
 
 	render() {
 		return (
-				<Card sx={{width: 225, minHeight: 200}}>
-					<CardActionArea {...this.getSx()} onClick={this.props.openForEditing}>
-						{this.renderImage()}
-						<CardContent>
-							<Typography gutterBottom variant="h5" component="div">
-								{this.props.subject.name}
-							</Typography>
-							<p style={{overflow: 'hidden', textOverflow: 'ellipsis', maxHeight: 150}}>
-								{this.renderDescription()}
-							</p>
-							<Stack spacing={1}>
-								{this.getChips()}
-							</Stack>
-						</CardContent>
-					</CardActionArea>
-					{this.renderRanker()}
-				</Card>
+			<Card sx={{ width: 225, minHeight: 200, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+				<CardActionArea {...this.getSx()} onClick={this.props.openForEditing}>
+					{this.renderImage()}
+					< CardContent >
+						<Typography gutterBottom variant="h5" component="div" style={{ hyphens: 'auto', overflowWrap: 'break-word' }}>
+							{this.props.subject.name}
+						</Typography>
+						<p style={{
+							overflow: 'hidden',
+							textOverflow: 'ellipsis',
+							display: '-webkit-box',
+							WebkitLineClamp: '5',
+							WebkitBoxOrient: 'vertical'
+						}}>
+							{this.renderDescription()}
+						</p>
+						{this.getChips()}
+					</CardContent >
+				</CardActionArea >
+				{this.renderRanker()}
+			</Card >
 		);
 	}
 }

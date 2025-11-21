@@ -1,344 +1,379 @@
-import {Component} from "react";
-import {connect} from "react-redux";
+import React, { useState, useEffect } from "react";
+import { v4 as uuidv4 } from 'uuid';
 
-import NavButton from "../../components/navbutton";
 import SubjectModal from "../../components/subjectmodal";
-import {SubjectCard} from "../../components/subjectcard";
+import { SubjectCard } from "../../components/subjectcard";
 
-import CONFIG from "../../config/CONFIG.json"
-
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
 import Stack from '@mui/material/Stack';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import Card from '@mui/material/Card';
-import {CardActionArea} from '@mui/material';
+import { CardActionArea } from '@mui/material';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
-import Checkbox from '@mui/material/Checkbox';
-import FormGroup from '@mui/material/FormGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
-class SubjectsBase extends Component {
-	constructor(props) {
-		super(props);
-		let subjectState = null;
-		try {
-			subjectState = JSON.parse(localStorage.getItem("subjectState"));
-		} catch (e) {
-			console.warn("FAILED TO LOAD FROM LOCAL STORAGE.")
+import { useActiveEventContext } from "../../context/EventContext";
+import { useSignupContext } from "../../context/SignupContext";
+
+import {
+	DndContext,
+	closestCenter,
+	KeyboardSensor,
+	PointerSensor,
+	useSensor,
+	useSensors,
+	DragOverlay,
+} from '@dnd-kit/core';
+import {
+	arrayMove,
+	SortableContext,
+	sortableKeyboardCoordinates,
+	horizontalListSortingStrategy,
+	verticalListSortingStrategy,
+	useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+function SortableSubjectCard({ subject, index, ...props }) {
+	const {
+		attributes,
+		listeners,
+		setNodeRef,
+		transform,
+		transition,
+	} = useSortable({ id: subject.id });
+
+	const style = {
+		transform: CSS.Transform.toString(transform),
+		transition,
+		opacity: props.isDragging ? 0 : 1,
+	};
+
+	return (
+		<div ref={setNodeRef} style={style}>
+			<SubjectCard
+				subject={subject}
+				index={index}
+				{...props}
+				dragHandleProps={{ ...attributes, ...listeners }}
+			/>
+		</div>
+	);
+}
+
+export function Subjects() {
+	const { state, dispatch } = useSignupContext();
+	const { subjects, noRanking } = state;
+
+	const [editing, setEditing] = useState(false);
+	const { activeEvent, config } = useActiveEventContext();
+	const [usableTags, setUsableTags] = useState(activeEvent.tags);
+	const theme = useTheme();
+	const isLgUp = useMediaQuery(theme.breakpoints.up('lg'));
+
+	const [subjectName, setSubjectName] = useState("");
+	const [subjectImageUrl, setSubjectImageUrl] = useState("");
+	const [subjectMainTags, setSubjectMainTags] = useState([]);
+	const [subjectOptionalTags, setSubjectOptionalTags] = useState([]);
+	const [subjectInfo, setSubjectInfo] = useState("");
+	const [subjectHasImage, setSubjectHasImage] = useState(false);
+	const [subjectPosition, setSubjectPosition] = useState(-1);
+	const [subjectId, setSubjectId] = useState(null);
+	const [draggedId, setDraggedId] = useState(null);
+
+	const sensors = useSensors(
+		useSensor(PointerSensor),
+		useSensor(KeyboardSensor, {
+			coordinateGetter: sortableKeyboardCoordinates,
+		})
+	);
+
+	useEffect(() => {
+		if (activeEvent && activeEvent.tags) {
+			setUsableTags(activeEvent.tags);
 		}
-		if (subjectState === null) {
-			this.state = {
-				subjects:
-						[],
-				noRanking: false,
-				editing: false,
-				usableTags: CONFIG.tags,
-				subjectName: "",
-				subjectTags: [],
-				subjectImageUrl: "",
-				subjectInfo: "",
-				subjectPosition: -1,
-				subjectHasImage: false
-			};
-		} else {
-			this.state = subjectState;
-		}
-	}
+	}, [activeEvent]);
 
-	localSave() {
-		try {
-			localStorage.setItem("subjectState", JSON.stringify(this.state));
-		} catch (e) {
-			console.warn("FAILED TO SAVE STATE. PROGRESS NOT SAVED.")
-		}
-	}
-
-	//TODO FIX THE WIDTH NOT HAVING A MARGIN
-	// todo rewrite these as basically one function but going in different directions by swapping the variables that are swapped
-	handleUpvoteClick(subject) {
-		const newSubjectsOrdering = Array.from(this.state.subjects);
-
-		const tempSubject = this.state.subjects[subject.position - 1];
-
-		subject.position -= 1;
-		newSubjectsOrdering[subject.position] = subject;
-
-		tempSubject.position += 1;
-		newSubjectsOrdering[subject.position + 1] = tempSubject;
-
-		this.setState({subjects: newSubjectsOrdering});
-	}
-
-
-	handleDownvoteClick(subject) {
-		const newSubjectsOrdering = Array.from(this.state.subjects);
-
-		const tempSubject = this.state.subjects[subject.position + 1];
-
-		subject.position += 1;
-		newSubjectsOrdering[subject.position] = subject;
-
-		tempSubject.position -= 1;
-		newSubjectsOrdering[subject.position - 1] = tempSubject;
-
-		this.setState({subjects: newSubjectsOrdering});
-	}
-
-	handleChange() {
-		this.setState({noRanking: !this.state.noRanking});
-	}
-
-	updateNameInput(event) {
-		this.setState({subjectName: event.target.value});
-	}
-
-	updateImageUrlInput(event) {
-		this.setState({
-			subjectImageUrl: event.target.value,
-			subjectHasImage: (event.target.value.endsWith("png") || event.target.value.endsWith("jpg") || event.target.value.endsWith("gif"))
+	const updateSubjectsState = (newSubjects, newNoRanking) => {
+		dispatch({
+			type: "UPDATE_SUBJECTS",
+			payload: {
+				subjects: newSubjects !== undefined ? newSubjects : subjects,
+				noRanking: newNoRanking !== undefined ? newNoRanking : noRanking
+			}
 		});
-	}
+	};
 
-	updateInfoInput(event) {
-		this.setState({subjectInfo: event.target.value});
-	}
+	const handleDragStart = (event) => {
+		setDraggedId(event.active.id);
+	};
 
-	openModal() {
-		this.setState({editing: true});
-	}
+	const handleDragEnd = (event) => {
+		const { active, over } = event;
+		setDraggedId(null);
 
-	openForEditing(subject) {
-		const baseTags = CONFIG.tags;
-		console.log(subject.tags)
+		if (active.id !== over.id) {
+			const oldIndex = subjects.findIndex((item) => item.id === active.id);
+			const newIndex = subjects.findIndex((item) => item.id === over.id);
+
+			const newItems = arrayMove(subjects, oldIndex, newIndex);
+			// Update positions in the objects themselves if needed
+			const updatedItems = newItems.map((item, index) => ({ ...item, position: index }));
+
+			updateSubjectsState(updatedItems, undefined);
+		}
+	};
+
+	const handleChange = () => {
+		const newNoRanking = !noRanking;
+		updateSubjectsState(undefined, newNoRanking);
+	};
+
+	const updateNameInput = (event) => {
+		setSubjectName(event.target.value);
+	};
+
+	const updateImageUrlInput = (event) => {
+		const url = event.target.value;
+		setSubjectImageUrl(url);
+		setSubjectHasImage(url.endsWith("png") || url.endsWith("jpg") || url.endsWith("gif"));
+	};
+
+	const updateInfoInput = (event) => {
+		setSubjectInfo(event.target.value);
+	};
+
+	const openModal = () => {
+		setEditing(true);
+		resetCurrentSubject();
+	};
+
+	const openForEditing = (subject) => {
+		// Filter usable tags
+		const baseTags = activeEvent.tags;
+
+		// Calculate currently used tags (from both main and optional) to filter out
+		const currentTags = [...(subject.mainTags || subject.tags || []), ...(subject.optionalTags || [])];
+
 		let remainingTags = baseTags.filter(x => {
-			for (const tag of subject.tags) {
+			for (const tag of currentTags) {
 				if (tag.id === x.id) {
 					return false;
 				}
 			}
 			return true;
 		});
-		console.log(remainingTags)
-		this.setState({
-			editing: true,
-			usableTags: remainingTags,
-			subjectName: subject.name,
-			subjectTags: subject.tags,
-			subjectImageUrl: subject.imageUrl,
-			subjectInfo: subject.info,
-			subjectPosition: subject.position,
-			subjectHasImage: (subject.imageUrl ? subject.imageUrl.endsWith("png") || subject.imageUrl.endsWith("jpg") || subject.imageUrl.endsWith("gif") : undefined)
 
-		});
-	}
+		setEditing(true);
+		setUsableTags(remainingTags);
+		setSubjectName(subject.name);
 
-	handleClose() {
-		this.resetCurrentSubject();
-		this.setState({editing: false});
-		this.localSave()
-	}
+		// Migration Logic
+		if (subject.mainTags) {
+			setSubjectMainTags(subject.mainTags);
+			setSubjectOptionalTags(subject.optionalTags || []);
+		} else {
+			// Legacy: Move all to Main
+			setSubjectMainTags(subject.tags || []);
+			setSubjectOptionalTags([]);
+		}
 
-	handleSave() {
+		setSubjectImageUrl(subject.imageUrl);
+		setSubjectInfo(subject.info);
+		setSubjectPosition(subject.position); // Keep track of original position/index
+		setSubjectId(subject.id);
+		setSubjectHasImage(subject.imageUrl ? subject.imageUrl.endsWith("png") || subject.imageUrl.endsWith("jpg") || subject.imageUrl.endsWith("gif") : false);
+	};
+
+	const handleClose = () => {
+		setEditing(false);
+		resetCurrentSubject();
+	};
+
+	const handleSave = () => {
 		let newCard = {
-			name: this.state.subjectName,
-			imageUrl: this.state.subjectImageUrl ? this.state.subjectImageUrl : undefined,
-			tags: this.state.subjectTags,
-			info: this.state.subjectInfo,
-			position: this.state.subjects.length
+			id: subjectId || uuidv4(),
+			name: subjectName,
+			imageUrl: subjectImageUrl ? subjectImageUrl : undefined,
+			mainTags: subjectMainTags,
+			optionalTags: subjectOptionalTags,
+			info: subjectInfo,
+			position: subjects.length // Default to end
 		};
 
-		if (this.state.subjectPosition !== -1) {
-			newCard = {...newCard, position: this.state.subjectPosition};
-			let updatedSubjects = [...this.state.subjects];
-			updatedSubjects[this.state.subjectPosition] = newCard;
-			this.setState({subjects: updatedSubjects});
+		let updatedSubjects;
+		if (subjectPosition !== -1) {
+			// Editing existing
+			newCard = { ...newCard, position: subjectPosition };
+			updatedSubjects = [...subjects];
+			updatedSubjects[subjectPosition] = newCard;
 		} else {
-			this.setState({subjects: this.state.subjects.concat(newCard)});
-		}
-		this.handleClose();
-	}
-
-	handleDelete() {
-		if (this.state.subjectPosition !== -1) {
-			const newSubjects = [...this.state.subjects];
-			newSubjects.splice(this.state.subjectPosition, 1);
-			for (let i = this.state.subjectPosition; i < newSubjects.length; i++) {
-				newSubjects[i].position -= 1;
-			}
-			this.setState({subjects: newSubjects});
-		}
-		this.handleClose();
-	}
-
-	updateTags(e, newValues, reason) {
-		let newTags = this.state.usableTags.slice();
-
-		if (reason === "selectOption") {
-			const addedTag = newValues.filter(x => this.state.usableTags.includes(x));
-
-			const index = this.state.usableTags.indexOf(addedTag[0]);
-			if (index > -1) {
-				newTags.splice(index, 1);
-			}
-		} else if (reason === "removeOption") {
-			const removedTag = this.state.subjectTags.filter(x => !newValues.includes(x));
-
-			newTags = this.state.usableTags.concat(removedTag[0]);
+			// Adding new
+			updatedSubjects = subjects.concat(newCard);
 		}
 
-		this.setState({usableTags: newTags, subjectTags: newValues});
-	}
+		// Recalculate positions just in case
+		updatedSubjects = updatedSubjects.map((s, i) => ({ ...s, position: i }));
 
-	resetCurrentSubject() {
-		this.setState({
-			usableTags: CONFIG.tags,
-			subjectName: "",
-			subjectTags: [],
-			subjectImageUrl: "",
-			subjectInfo: "",
-			subjectPosition: -1,
-			subjectHasImage: false
-		})
-	}
+		updateSubjectsState(updatedSubjects, undefined);
+		handleClose();
+	};
 
-	renderCards() {
-		let cards = []
+	const handleDelete = () => {
+		if (subjectPosition !== -1) {
+			const newSubjects = [...subjects];
+			newSubjects.splice(subjectPosition, 1);
+			// Update positions
+			const updatedSubjects = newSubjects.map((s, i) => ({ ...s, position: i }));
 
-		this.state.subjects.forEach(subject => {
-			cards.push(
-					<SubjectCard
-							noRanking={this.state.noRanking}
-							numOfCards={this.state.subjects.length}
-							subject={subject}
-							handleUpvoteClick={() => {
-								this.handleUpvoteClick(subject)
-							}}
-							handleDownvoteClick={() => {
-								this.handleDownvoteClick(subject)
-							}}
-							openForEditing={() => {
-								this.openForEditing(subject)
-							}}
-					/>)
-		})
-
-		if (this.state.subjects.length < CONFIG.maxSubjects) {
-			cards.push(
-					<Card sx={{minWidth: 150, maxWidth: 225, minHeight: 200}}>
-						<CardActionArea sx={{minWidth: 150, maxWidth: 225, minHeight: 200, height: 100 + '%'}} onClick={() => {
-							this.openModal()
-						}}>
-							<CardContent>
-								<AddCircleOutlineIcon sx={{fontSize: 50}}/>
-								<Typography variant="body2" color="text.secondary">
-									Add a Subject
-								</Typography>
-							</CardContent>
-						</CardActionArea>
-					</Card>)
+			updateSubjectsState(updatedSubjects, undefined);
 		}
+		handleClose();
+	};
 
-		return cards;
-	}
+	const updateMainTags = (e, newValues) => {
+		// Re-derive usable tags based on selection
+		const baseTags = activeEvent.tags;
+		// Combine current selections from both boxes
+		const currentSelected = [...newValues, ...subjectOptionalTags];
+		const newUsable = baseTags.filter(tag => !currentSelected.some(s => s.id === tag.id));
 
-	render() {
-		return (
-				<div className="subjectsPage">
-					<SubjectModal
-							editing={this.state.editing}
-							usableTags={this.state.usableTags}
-							name={this.state.subjectName}
-							imageUrl={this.state.subjectImageUrl}
-							tags={this.state.subjectTags}
-							info={this.state.subjectInfo}
-							hasImage={this.state.subjectHasImage}
-							hideModal={() => this.handleClose()}
-							updateNameInput={event => {
-								this.updateNameInput(event)
-							}}
-							updateImageUrlInput={event => {
-								this.updateImageUrlInput(event)
-							}}
-							updateTags={(e, values, r) => this.updateTags(e, values, r)}
-							updateInfoInput={event => {
-								this.updateInfoInput(event)
-							}}
-							handleSave={() => {
-								this.handleSave()
-							}}
-							handleDelete={() => {
-								this.handleDelete()
-							}}
-					/>
-					<div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
-						<h1><strong>ADD THE SUBJECTS YOU WANT DRAWN</strong></h1>
-					</div>
-					<div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
-						<div className="row justify-content-center" style={{padding: '2%'}}>
-							<p align="left">
-								Please fill in the subjects that you wish to have drawn for this event. Click
-								on the arrows to increase or decrease the priority of each subject, from <strong>1 being your most
-								wanted to {CONFIG.maxSubjects} being your least</strong>. You can disable ranking if you don't care or have no
-								preference for which subject you want drawn. You may have up to {CONFIG.maxSubjects} subjects.
-							</p>
-							<p align="center" style={{marginTop: '5%', marginBottom: '0%'}}>
-								Tap on a card to edit it!
-							</p>
-						</div>
-					</div>
-					<div className="container-fluid">
-							<Stack
-									direction={{xs: 'column', lg: 'row'}}
-									spacing={{xs: 2}}
-									justifyContent="center"
-									alignItems="center"
-							>
-								{this.renderCards()}
-							</Stack>
-					</div>
-					<div className="container-fluid" style={{maxWidth: 970 + 'px'}}>
-						<div className="row justify-content-center" style={{maxWidth: 970 + 'px'}}>
-							<FormGroup>
-								<FormControlLabel control={<Checkbox onChange={event => this.handleChange(event)}
-								                                     checked={this.state.noRanking}/>}
-								                  label="Disable ranking/No preferences"/>
-							</FormGroup>
-						</div>
-						<div className="row justify-content-center" style={{maxWidth: 970 + 'px'}}>
-							<br/>
-							<div
-									className="row navBtns container justify-content-center"
-									style={{maxWidth: 970 + 'px'}}
-							>
-								<div className="col d-flex justify-content-start">
-									<NavButton
-											navTo="preferences"
-											type={"UPDATE_SUBJECTS"}
-											pageStateKey={"subjectState"}
-											pageState={this.state}
-											text={"Back"}
-											payload={{subjects: this.state.subjects, noRanking: this.state.noRanking}}/>
-								</div>
-								<div className="col my-auto">
-									2/5
-								</div>
-								<div className="col d-flex justify-content-end">
-									<NavButton
-											navTo="tier"
-											type={"UPDATE_SUBJECTS"}
-											pageStateKey={"subjectState"}
-											pageState={this.state}
-											payload={{subjects: this.state.subjects, noRanking: this.state.noRanking}}/>
-								</div>
-							</div>
-						</div>
-					</div>
+		setUsableTags(newUsable);
+		setSubjectMainTags(newValues);
+	};
+
+	const updateOptionalTags = (e, newValues) => {
+		// Re-derive usable tags based on selection
+		const baseTags = activeEvent.tags;
+		// Combine current selections from both boxes
+		const currentSelected = [...subjectMainTags, ...newValues];
+		const newUsable = baseTags.filter(tag => !currentSelected.some(s => s.id === tag.id));
+
+		setUsableTags(newUsable);
+		setSubjectOptionalTags(newValues);
+	};
+
+	const resetCurrentSubject = () => {
+		const baseTags = activeEvent.tags;
+		setUsableTags(baseTags);
+		setSubjectName("");
+		setSubjectMainTags([]);
+		setSubjectOptionalTags([]);
+		setSubjectImageUrl("");
+		setSubjectInfo("");
+		setSubjectPosition(-1);
+		setSubjectHasImage(false);
+		setSubjectId(null);
+	};
+
+	return (
+		<div className="subjectsPage">
+			<SubjectModal
+				editing={editing}
+				usableTags={usableTags}
+				name={subjectName}
+				imageUrl={subjectImageUrl}
+				mainTags={subjectMainTags}
+				optionalTags={subjectOptionalTags}
+				info={subjectInfo}
+				hasImage={subjectHasImage}
+				hideModal={handleClose}
+				updateNameInput={updateNameInput}
+				updateImageUrlInput={updateImageUrlInput}
+				updateMainTags={updateMainTags}
+				updateOptionalTags={updateOptionalTags}
+				updateInfoInput={updateInfoInput}
+				handleSave={handleSave}
+				handleDelete={handleDelete}
+			/>
+			<div className="container-fluid" style={{ maxWidth: '970px' }}>
+				<h1><strong>ADD THE SUBJECTS YOU WANT DRAWN</strong></h1>
+			</div>
+			<div className="container-fluid" style={{ maxWidth: '970px' }}>
+				<div className="row justify-content-center" style={{ padding: '2%' }}>
+					<p align="left">
+						Please fill in the subjects that you wish to have drawn for this event.
+						<strong> Drag and drop the cards to reorder them</strong>, from <strong>1 being your most
+							wanted to {config.maxSubjects} being your least</strong>. You can disable ranking if you don't care or have no
+						preference for which subject you want drawn. You may have up to {config.maxSubjects} subjects.
+					</p>
+					<p align="center" style={{ marginTop: '5%', marginBottom: '0%' }}>
+						Tap on a card to edit it!
+					</p>
 				</div>
-		);
-	}
+			</div>
+			<div className="container-fluid">
+				<DndContext
+					sensors={sensors}
+					collisionDetection={closestCenter}
+					onDragStart={handleDragStart}
+					onDragEnd={handleDragEnd}
+				>
+					<Stack
+						direction={{ xs: 'column', lg: 'row' }}
+						spacing={{ xs: 2 }}
+						justifyContent="center"
+						alignItems={{ xs: 'center', lg: 'flex-end' }}
+					>
+						<SortableContext
+							items={subjects.map(s => s.id)}
+							strategy={isLgUp ? horizontalListSortingStrategy : verticalListSortingStrategy}
+						>
+							{subjects.map((subject, index) => (
+								<SortableSubjectCard
+									key={subject.id}
+									subject={subject}
+									index={index}
+									noRanking={noRanking}
+									numOfCards={subjects.length}
+									openForEditing={() => openForEditing(subject)}
+									isDragging={draggedId === subject.id}
+								/>
+							))}
+						</SortableContext>
+
+						{subjects.length < config.maxSubjects && (
+							<Card sx={{ minWidth: 150, maxWidth: 225, minHeight: 200 }}>
+								<CardActionArea
+									sx={{ minWidth: 150, maxWidth: 225, minHeight: 200, height: '100%' }}
+									onClick={openModal}
+								>
+									<CardContent>
+										<AddCircleOutlineIcon sx={{ fontSize: 50 }} />
+										<Typography variant="body2" color="text.secondary">
+											Add a Subject
+										</Typography>
+									</CardContent>
+								</CardActionArea>
+							</Card>
+						)}
+					</Stack>
+					<DragOverlay>
+						{draggedId ? (
+							<SubjectCard
+								subject={subjects.find(s => s.id === draggedId)}
+								index={subjects.findIndex(s => s.id === draggedId)}
+								noRanking={noRanking}
+								numOfCards={subjects.length}
+							/>
+						) : null}
+					</DragOverlay>
+				</DndContext>
+			</div>
+
+			<div className="container-fluid" style={{ maxWidth: '970px' }}>
+				<div className="row justify-content-center" style={{ maxWidth: 970 + 'px' }}>
+					<FormGroup>
+						<FormControlLabel control={<Checkbox onChange={event => handleChange(event)}
+							checked={noRanking} />}
+							label="Disable ranking/No preferences" />
+					</FormGroup>
+				</div>
+			</div>
+		</div>
+	);
 }
-
-
-export const Subjects = connect(
-)(SubjectsBase);
-
