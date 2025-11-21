@@ -129,13 +129,13 @@ export default function Finish() {
 				setVerificationStatus("error");
 				setVerificationMessage(`${error.response?.data?.error || "Failed to verify. Please check the URL and try again."} If you continue to have issues, please feel free to reach out to Hex.`);
 			});
-	}, [postUrl, state, activeEvent.id]);
+	}, [postUrl, state, activeEvent._id]);
 
 	const handleUpdateClick = useCallback(() => {
 		setUpdateStatus("updating");
 		axios.post('/api/updateSignup', {
 			...state,
-			eventId: activeEvent.id
+			eventId: activeEvent._id
 		})
 			.then(response => {
 				setUpdateStatus("success");
@@ -146,7 +146,7 @@ export default function Finish() {
 				setUpdateStatus("error");
 				alert("Failed to update signup. Please try again.");
 			});
-	}, [state, activeEvent.id]);
+	}, [state, activeEvent._id]);
 
 	const handleCloseModal = () => {
 		if (verificationStatus !== "success" && modalStep === 2) {

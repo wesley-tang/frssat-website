@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { CircularProgress, Box } from '@mui/material'; // For a loading spinner
+import { CircularProgress, Box, Typography } from '@mui/material'; // For a loading spinner
 
 // 1. Create the context
 const EventContext = createContext(null);
@@ -36,16 +36,22 @@ export function EventProvider({ children }) {
 
 	if (loading) {
 		return (
-				<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-					<CircularProgress />
-				</Box>
+			<Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+				<CircularProgress />
+				<Typography variant="h6" sx={{ mt: 2 }}>
+					Loading the FRSSAT app config...
+				</Typography>
+				<Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+					If you are stuck on this screen, please reach out to Hex.
+				</Typography>
+			</Box>
 		);
 	}
 
 	return (
-			<EventContext.Provider value={{activeEvent, config}}>
-				{children}
-			</EventContext.Provider>
+		<EventContext.Provider value={{ activeEvent, config }}>
+			{children}
+		</EventContext.Provider>
 	);
 }
 

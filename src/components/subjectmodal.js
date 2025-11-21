@@ -15,59 +15,74 @@ import MuiModal from '@mui/material/Modal';
 import Typography from '@mui/material/Typography';
 
 export default function SubjectModal(props) {
+    const {
+        name,
+        imageUrl,
+        info,
+        updateNameInput,
+        updateImageUrlInput,
+        updateInfoInput,
+        mainTags,
+        optionalTags,
+        hasImage,
+        editing,
+        hideModal,
+        handleDelete,
+        handleSave,
+        usableTags,
+        updateMainTags,
+        updateOptionalTags
+    } = props;
+
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
     // Local state for debouncing
-    const [localName, setLocalName] = React.useState(props.name);
-    const [localImageUrl, setLocalImageUrl] = React.useState(props.imageUrl);
-    const [localInfo, setLocalInfo] = React.useState(props.info);
+    const [localName, setLocalName] = React.useState(name);
+    const [localImageUrl, setLocalImageUrl] = React.useState(imageUrl);
+    const [localInfo, setLocalInfo] = React.useState(info);
 
     // Sync local state with props when they change (e.g. opening modal for different subject)
-    // We only want to sync if the prop value is different from our local state, 
-    // which happens when switching subjects or if the parent updates from another source.
-    // However, to avoid fighting with the debounce, we might want to only sync when the modal opens?
-    // Or just trust that if they match, no harm done.
     React.useEffect(() => {
-        setLocalName(props.name);
-    }, [props.name]);
+        setLocalName(name);
+    }, [name]);
 
     React.useEffect(() => {
-        setLocalImageUrl(props.imageUrl);
-    }, [props.imageUrl]);
+        setLocalImageUrl(imageUrl);
+    }, [imageUrl]);
 
     React.useEffect(() => {
-        setLocalInfo(props.info);
-    }, [props.info]);
+        setLocalInfo(info);
+    }, [info]);
 
     // Debounce effects
     React.useEffect(() => {
         const timer = setTimeout(() => {
-            if (localName !== props.name) {
-                props.updateNameInput({ target: { value: localName } });
+            if (localName !== name) {
+                updateNameInput({ target: { value: localName } });
             }
         }, 300);
         return () => clearTimeout(timer);
-    }, [localName, props.name, props.updateNameInput]);
+    }, [localName, name, updateNameInput]);
 
     React.useEffect(() => {
         const timer = setTimeout(() => {
-            if (localImageUrl !== props.imageUrl) {
-                props.updateImageUrlInput({ target: { value: localImageUrl } });
+            if (localImageUrl !== imageUrl) {
+                updateImageUrlInput({ target: { value: localImageUrl } });
             }
         }, 300);
         return () => clearTimeout(timer);
-    }, [localImageUrl, props.imageUrl, props.updateImageUrlInput]);
+    }, [localImageUrl, imageUrl, updateImageUrlInput]);
 
     React.useEffect(() => {
         const timer = setTimeout(() => {
-            if (localInfo !== props.info) {
-                props.updateInfoInput({ target: { value: localInfo } });
+            if (localInfo !== info) {
+                updateInfoInput({ target: { value: localInfo } });
             }
         }, 300);
         return () => clearTimeout(timer);
-    }, [localInfo, props.info, props.updateInfoInput]);
+    }, [localInfo, info, updateInfoInput]);
 
 
     let text = "";
@@ -84,10 +99,10 @@ export default function SubjectModal(props) {
     text += "\n[b]I would like to receive this type of art for this subject:[/b] ";
 
     let tags = []
-    props.mainTags.forEach(tag => {
+    mainTags.forEach(tag => {
         tags.push(tag.name);
     })
-    props.optionalTags.forEach(tag => {
+    optionalTags.forEach(tag => {
         tags.push(tag.name);
     })
     text += tags.join(", ");
@@ -95,7 +110,7 @@ export default function SubjectModal(props) {
     text += `\n[b]Any additional notes for this subject:[/b] ${localInfo}`;
 
     const image =
-        (props.hasImage ?
+        (hasImage ?
             <div className="row justify-content-center" style={{ maxWidth: 970 + 'px' }}>
                 <img src={localImageUrl} alt="Subject Reference (If you're seeing this alt text, it may be that your link is broken)" />
             </div>
@@ -113,7 +128,7 @@ export default function SubjectModal(props) {
         p: 4,
     };
 
-    const requiredTagCount = props.mainTags.filter(t => t.required).length;
+    const requiredTagCount = mainTags.filter(t => t.required).length;
     const validationError = requiredTagCount !== 1;
 
     const warning = (
@@ -126,14 +141,14 @@ export default function SubjectModal(props) {
 
     return (
         <Modal
-            show={props.editing}
-            onHide={props.hideModal}
+            show={editing}
+            onHide={hideModal}
             aria-labelledby="Subject modal"
             aria-describedby="Modal for creating a subject"
         >
             <Modal.Header>
                 <Modal.Title>Create a New Subject</Modal.Title>
-                <IconButton onClick={props.hideModal}>
+                <IconButton onClick={hideModal}>
                     <CloseIcon fontSize="small" />
                 </IconButton>
             </Modal.Header>
@@ -198,11 +213,11 @@ export default function SubjectModal(props) {
                             </Typography>
                             <AutocompleteInput
                                 title="*Main Tags (1-3)"
-                                tags={props.usableTags.filter(t => !props.mainTags.some(mt => mt.required) || !t.required)}
-                                updateTags={props.updateMainTags}
+                                tags={usableTags.filter(t => !mainTags.some(mt => mt.required) || !t.required)}
+                                updateTags={updateMainTags}
                                 autocomplPropPassThru={{
-                                    defaultValue: props.mainTags,
-                                    value: props.mainTags,
+                                    defaultValue: mainTags,
+                                    value: mainTags,
                                     error: validationError,
                                     helperText: "Must have exactly one required tag."
                                 }}
@@ -218,11 +233,11 @@ export default function SubjectModal(props) {
                             </Typography>
                             <AutocompleteInput
                                 title="Optional Tags"
-                                tags={props.usableTags}
-                                updateTags={props.updateOptionalTags}
+                                tags={usableTags}
+                                updateTags={updateOptionalTags}
                                 autocomplPropPassThru={{
-                                    defaultValue: props.optionalTags,
-                                    value: props.optionalTags
+                                    defaultValue: optionalTags,
+                                    value: optionalTags
                                 }}
                                 chipVariant="outlined"
                                 width="100%"
@@ -260,7 +275,7 @@ export default function SubjectModal(props) {
                         <div className="col d-flex justify-content-start">
                             <Button
                                 id="deleteSubject"
-                                onClick={props.handleDelete}
+                                onClick={handleDelete}
                                 variant="contained"
                                 color="error"
                             >
@@ -279,7 +294,7 @@ export default function SubjectModal(props) {
                             </Button>
                             <Button
                                 id="saveSubject"
-                                onClick={props.handleSave}
+                                onClick={handleSave}
                                 variant="contained"
                                 color="success"
                                 disabled={validationError}
