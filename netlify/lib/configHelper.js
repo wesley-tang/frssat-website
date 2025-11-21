@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb";
 
 // Get the connection string from Netlify's environment
-const MONGO_URI = 'mongodb+srv://frssat-app-user:M2UP1uFW2UoKC6sl@frssat-cluster.7itdjsk.mongodb.net/frssat-event-prod?appName=frssat-cluster';
+const MONGO_URI = process.env.MONGODB_URI;
 export const client = new MongoClient(MONGO_URI);
 
 // --- Our In-Memory Cache ---
