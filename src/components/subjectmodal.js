@@ -2,6 +2,7 @@ import * as React from 'react';
 import Modal from "react-bootstrap/Modal";
 
 import XBBCODE from "./xbbcode.js";
+import { BBCodeEditor } from "./BBCodeEditor";
 
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import Tooltip from '@mui/material/Tooltip';
@@ -11,36 +12,92 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import Box from '@mui/material/Box';
 import MuiModal from '@mui/material/Modal';
+import Typography from '@mui/material/Typography';
 
 export default function SubjectModal(props) {
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
+
+    // Local state for debouncing
+    const [localName, setLocalName] = React.useState(props.name);
+    const [localImageUrl, setLocalImageUrl] = React.useState(props.imageUrl);
+    const [localInfo, setLocalInfo] = React.useState(props.info);
+
+    // Sync local state with props when they change (e.g. opening modal for different subject)
+    // We only want to sync if the prop value is different from our local state, 
+    // which happens when switching subjects or if the parent updates from another source.
+    // However, to avoid fighting with the debounce, we might want to only sync when the modal opens?
+    // Or just trust that if they match, no harm done.
+    React.useEffect(() => {
+        setLocalName(props.name);
+    }, [props.name]);
+
+    React.useEffect(() => {
+        setLocalImageUrl(props.imageUrl);
+    }, [props.imageUrl]);
+
+    React.useEffect(() => {
+        setLocalInfo(props.info);
+    }, [props.info]);
+
+    // Debounce effects
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            if (localName !== props.name) {
+                props.updateNameInput({ target: { value: localName } });
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [localName, props.name, props.updateNameInput]);
+
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            if (localImageUrl !== props.imageUrl) {
+                props.updateImageUrlInput({ target: { value: localImageUrl } });
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [localImageUrl, props.imageUrl, props.updateImageUrlInput]);
+
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            if (localInfo !== props.info) {
+                props.updateInfoInput({ target: { value: localInfo } });
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [localInfo, props.info, props.updateInfoInput]);
+
+
     let text = "";
-    text += `[b][u]Subject Name[/u][/b]: ${props.name}
+    text += `[b][u]Subject Name[/u][/b]: ${localName}
 [b]Reference pictures/links:[/b] `;
 
-    if (props.imageUrl === undefined) {
+    if (localImageUrl === undefined) {
         text += "none"
-    } else if (props.imageUrl.endsWith("png") || props.imageUrl.endsWith("jpg") || props.imageUrl.endsWith("gif")) {
-        text += `\n[img]${props.imageUrl}[/img]`;
+    } else if (localImageUrl.endsWith("png") || localImageUrl.endsWith("jpg") || localImageUrl.endsWith("gif")) {
+        text += `\n[img]${localImageUrl}[/img]`;
     }
-    else { text += props.imageUrl; }
+    else { text += localImageUrl; }
 
     text += "\n[b]I would like to receive this type of art for this subject:[/b] ";
 
     let tags = []
-    props.tags.forEach(tag => {
+    props.mainTags.forEach(tag => {
+        tags.push(tag.name);
+    })
+    props.optionalTags.forEach(tag => {
         tags.push(tag.name);
     })
     text += tags.join(", ");
 
-    text += `\n[b]Any additional notes for this subject:[/b] ${props.info}`;
+    text += `\n[b]Any additional notes for this subject:[/b] ${localInfo}`;
 
     const image =
         (props.hasImage ?
             <div className="row justify-content-center" style={{ maxWidth: 970 + 'px' }}>
-                <img src={props.imageUrl} alt="Subject Reference (If you're seeing this alt text, it may be that your link is broken)" />
+                <img src={localImageUrl} alt="Subject Reference (If you're seeing this alt text, it may be that your link is broken)" />
             </div>
             : null
         );
@@ -56,10 +113,13 @@ export default function SubjectModal(props) {
         p: 4,
     };
 
+    const requiredTagCount = props.mainTags.filter(t => t.required).length;
+    const validationError = requiredTagCount !== 1;
+
     const warning = (
-        props.tags.length < 1 ? (
+        validationError ? (
             <small style={{ color: "#d32f2f" }}>
-                * At least one tag is needed!
+                * You must provide ONE tag that is labelled as required.
             </small>)
             : null
     )
@@ -104,8 +164,8 @@ export default function SubjectModal(props) {
                                 name="subjectName"
                                 className="form-control"
                                 placeholder="Subject Name"
-                                onChange={props.updateNameInput}
-                                value={props.name}
+                                onChange={(e) => setLocalName(e.target.value)}
+                                value={localName}
                             />
                         </div>
                         <div className="form-group container-fluid" style={{ maxWidth: 970 + 'px' }}>
@@ -119,48 +179,69 @@ export default function SubjectModal(props) {
                                 name="subjectImg"
                                 className="form-control"
                                 placeholder="Link to image"
-                                onChange={props.updateImageUrlInput}
-                                value={props.imageUrl}
+                                onChange={(e) => setLocalImageUrl(e.target.value)}
+                                value={localImageUrl}
                             />
-
-                            {/* <div className="row justify-content-center" style={{ maxWidth: 970 + 'px' }}>
-                                <FormGroup>
-                                    <FormControlLabel control={<Checkbox onChange={event => this.handleChange(event)} checked={this.state.noRanking} />} label={this.fancyLabel()} />
-                                </FormGroup>
-                            </div> */}
                             {image}
                         </div>
                         <br />
-                        
-                        <h5><Tooltip disableFocusListener title="This includes tags for which you have no reference art, though we recommend it or a written description, if possible.">
-                            <HelpOutlineOutlinedIcon fontSize="10" />
-                        </Tooltip>
-                            &nbsp;What type of art would you like for this character?
-                        </h5>
-                        <AutocompleteInput
-                            title="Subject Tags"
-                            tags={props.usableTags}
-                            updateTags={props.updateTags}
-                            autocomplPropPassThru={{
-                                defaultValue: props.tags,
-                                error: (props.tags.length < 1),
-                                helperText: "Need at least one tag."
-                            }}
-                        />
-                        {warning}
+
+                        <div className="form-group container-fluid" style={{ maxWidth: 970 + 'px' }}>
+                            <h5><Tooltip disableFocusListener title="This includes tags for which you have no reference art, though we recommend it or a written description, if possible.">
+                                <HelpOutlineOutlinedIcon fontSize="10" />
+                            </Tooltip>
+                                &nbsp;What type of art would you like for this character?
+                            </h5>
+
+                            <Typography variant="caption" display="block" gutterBottom>
+                                <b>If a Santa bans any of these tags they will not match with this character.</b>
+                            </Typography>
+                            <AutocompleteInput
+                                title="*Main Tags (1-3)"
+                                tags={props.usableTags.filter(t => !props.mainTags.some(mt => mt.required) || !t.required)}
+                                updateTags={props.updateMainTags}
+                                autocomplPropPassThru={{
+                                    defaultValue: props.mainTags,
+                                    value: props.mainTags,
+                                    error: validationError,
+                                    helperText: "Must have exactly one required tag."
+                                }}
+                                boldRequired={true}
+                                chipVariant="filled"
+                                width="100%"
+                            />
+                            {warning}
+                            <br />
+
+                            <Typography variant="caption" display="block" gutterBottom>
+                                Alternate/optional or non-critical traits you want drawn.
+                            </Typography>
+                            <AutocompleteInput
+                                title="Optional Tags"
+                                tags={props.usableTags}
+                                updateTags={props.updateOptionalTags}
+                                autocomplPropPassThru={{
+                                    defaultValue: props.optionalTags,
+                                    value: props.optionalTags
+                                }}
+                                chipVariant="outlined"
+                                width="100%"
+                                inputVariant="standard"
+                            />
+                        </div>
+
                         <br />
                         <div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
-                            <div className="md-form">
-                                <label>Any additional notes for this subject:</label>
-                                <textarea
-                                    id="subjectFree"
-                                    className="md-textarea form-control"
-                                    rows="5"
-                                    style={{ fontSize: 14 }}
-                                    onChange={props.updateInfoInput}
-                                    value={props.info}
-                                ></textarea>
-                            </div>
+                            <BBCodeEditor
+                                id="outlined-basic"
+                                label="Any additional notes for this subject:"
+                                value={localInfo}
+                                onChange={(e) => setLocalInfo(e.target.value)}
+                                textFieldProps={{
+                                    minRows: 5,
+                                    variant: "filled"
+                                }}
+                            />
                         </div>
                         <div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
                             <p align="center">
@@ -201,7 +282,7 @@ export default function SubjectModal(props) {
                                 onClick={props.handleSave}
                                 variant="contained"
                                 color="success"
-                                disabled={props.tags.length < 1}
+                                disabled={validationError}
                             >
                                 Save
                             </Button>

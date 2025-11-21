@@ -243,7 +243,7 @@ class SubmissionBase extends Component {
 							You are free to submit multiple times after you have completed your primary piece.
 							<br/><br/>
 							If you have any questions or issues with the form, please PM us or ping us on the <a
-								href={"https://www1.flightrising.com/forums/cc/3183232/1"}>thread</a>!
+								href={CONFIG.mainThreadUrl}>thread</a>!
 							<br/><br/>
 							Thank you for taking part in this event, and we hope to see you again next year!
 						</p>
@@ -385,9 +385,13 @@ class SubmissionBase extends Component {
 											<div className="form-check form-check-inline">
 												<FormGroup>
 													<FormControlLabel control={<Checkbox onChange={event => this.handleNextYearChange(event)}
-													                                     checked={this.state.nextYear}/>}
-													                  label="Notify me when FR Secret Santa Art Trade is run again next year!"/>
+													                                     checked={this.state.nextYear}
+													                                     disabled={true}/>}
+													                  label="Notify me when FR Secret Santa Art Trade is run again next year!*"/>
 												</FormGroup>
+												<p align="left">
+													* Since I will no longer be using mass pings, ensure you subscribe to the next year's pinglist when the event ends!
+												</p>
 											</div>
 										</div>
 										<br/>
