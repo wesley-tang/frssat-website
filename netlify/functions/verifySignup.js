@@ -9,7 +9,7 @@ export async function handler(event) {
     }
 
     try {
-        const { signupUuid, postUrl, eventId, ...formData } = JSON.parse(event.body);
+        let { signupUuid, postUrl, eventId, isInitialized, ...formData } = JSON.parse(event.body);
 
         if (!signupUuid || !postUrl) {
             return {
@@ -28,24 +28,57 @@ export async function handler(event) {
         let username = null;
         let userId = null;
 
-        $("div.post").each((i, el) => {
-            const postContent = $(el).find(".post-text-content").text();
-
-            if (postContent.includes(signupUuid)) {
-                foundPost = $(el);
-
-                const authorLink = foundPost.find("a.post-author-username");
-                username = authorLink.text().trim();
-                const authorHref = authorLink.attr("href");
-
-                const idMatch = authorHref ? authorHref.match(/\/clan-profile\/(\d+)/) : null;
-                if (idMatch) {
-                    userId = idMatch[1];
+        // Strategy A: Check specific post ID from URL fragment
+        try {
+            const urlHash = new URL(postUrl).hash;
+            if (urlHash && urlHash.startsWith("#post_")) {
+                const specificPost = $(urlHash);
+                if (specificPost.length > 0) {
+                    const postContent = specificPost.find(".post-text-content").text();
+                    if (postContent.includes(signupUuid)) {
+                        foundPost = specificPost;
+                    }
                 }
-
-                return false; // Break the loop
             }
-        });
+        } catch (e) {
+            console.warn("Failed to parse postUrl for ID:", e);
+        }
+
+        // Strategy B: Scan all posts (Fallback)
+        if (!foundPost) {
+            $("div.post").each((i, el) => {
+                const postContent = $(el).find(".post-text-content").text();
+
+                if (postContent.includes(signupUuid)) {
+                    foundPost = $(el);
+                    return false; // Break the loop
+                }
+            });
+        }
+
+        // Extract user info if post found
+        if (foundPost) {
+            const authorLink = foundPost.find("a.post-author-username");
+            username = authorLink.text().trim();
+            const authorHref = authorLink.attr("href");
+
+            const idMatch = authorHref ? authorHref.match(/\/clan-profile\/(\d+)/) : null;
+            if (idMatch) {
+                userId = idMatch[1];
+            }
+
+            // Ensure the saved URL links to this specific post
+            const postId = foundPost.attr("id");
+            if (postId) {
+                try {
+                    const urlObj = new URL(postUrl);
+                    urlObj.hash = `#${postId}`;
+                    postUrl = urlObj.toString();
+                } catch (e) {
+                    console.warn("Failed to update postUrl hash:", e);
+                }
+            }
+        }
 
         if (!foundPost) {
             return {
