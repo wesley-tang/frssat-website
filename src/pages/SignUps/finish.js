@@ -89,18 +89,35 @@ export default function Finish() {
 		}
 	}, []);
 
+	const handleUpdateClick = useCallback(() => {
+		setUpdateStatus("updating");
+		axios.post('/api/updateSignup', {
+			...state,
+			eventId: activeEvent._id
+		})
+			.then(response => {
+				setUpdateStatus("success");
+				alert("Signup updated successfully! You can now update your post on the forums.");
+			})
+			.catch(error => {
+				console.error("Error updating signup:", error);
+				setUpdateStatus("error");
+				alert("Failed to update signup. Please try again.");
+			});
+	}, [state, activeEvent._id]);
+
 	const handleCopyClick = useCallback(() => {
 		selectTextArea();
 		document.execCommand('copy');
 		setIsDirty(false);
 
 		if (isVerified) {
-			alert("You've copied your completed sign-up form! You can now update your post on the forums.");
+			handleUpdateClick();
 		} else {
 			setModalOpen(true);
 			setModalStep(1);
 		}
-	}, [selectTextArea, isVerified]);
+	}, [selectTextArea, isVerified, handleUpdateClick]);
 
 	const handleGoToForums = useCallback(() => {
 		window.open(activeEvent.signupThreadUrl, '_blank');
@@ -130,23 +147,6 @@ export default function Finish() {
 				setVerificationMessage(`${error.response?.data?.error || "Failed to verify. Please check the URL and try again."} If you continue to have issues, please feel free to reach out to Hex.`);
 			});
 	}, [postUrl, state, activeEvent._id]);
-
-	const handleUpdateClick = useCallback(() => {
-		setUpdateStatus("updating");
-		axios.post('/api/updateSignup', {
-			...state,
-			eventId: activeEvent._id
-		})
-			.then(response => {
-				setUpdateStatus("success");
-				alert("Signup updated successfully!");
-			})
-			.catch(error => {
-				console.error("Error updating signup:", error);
-				setUpdateStatus("error");
-				alert("Failed to update signup. Please try again.");
-			});
-	}, [state, activeEvent._id]);
 
 	const handleCloseModal = () => {
 		if (verificationStatus !== "success" && modalStep === 2) {
@@ -195,16 +195,25 @@ export default function Finish() {
 					/>
 				</div>
 				<div style={{ paddingTop: 2 + '%' }}>
-					<Button className="row justify-content-center" variant="contained" onClick={handleCopyClick}>Copy</Button>
+					<Button
+						className="row justify-content-center"
+						variant="contained"
+						onClick={handleCopyClick}
+						disabled={updateStatus === "updating"}
+					>
+						{updateStatus === "updating" ? "Updating..." : `Copy and ${isVerified ? "Update" : "Verify"}`}
+					</Button>
 				</div>
 			</div>
 
 			<Box sx={{ width: '100%', mt: 4, mb: 8 }}>
 				<Box sx={{ maxWidth: '970px', margin: '0 auto', px: 2 }}>
-					<Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+					<Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
 						<Button
+							color="inherit"
 							variant="outlined"
 							onClick={handleBack}
+							sx={{ mr: 1 }}
 						>
 							Back
 						</Button>
@@ -214,36 +223,24 @@ export default function Finish() {
 							variant="outlined"
 							color="error"
 							onClick={handleReset}
+							sx={{ mr: isVerified ? 2 : 0 }}
 						>
 							RESET
 						</Button>
 
-						<div style={{ marginLeft: '6%' }}>
-							{isVerified ? (
-								<Button
-									variant="contained"
-									color="primary"
-									onClick={handleUpdateClick}
-									disabled={updateStatus === "updating"}
-								>
-									{updateStatus === "updating" ? "Updating..." : "Update Signup"}
-								</Button>
-							) : (
-								<Button
-									variant="contained"
-									color="success"
-									disabled={isDirty}
-									onClick={() => setModalOpen(true)}
-								>
-									Verify Signup
-								</Button>
-							)}
-						</div>
+						{isVerified && (
+							<Button
+								onClick={handleGoToForums}
+								variant="contained"
+								color="success"
+							>
+								Go to Forums
+							</Button>
+						)}
 					</Box>
 				</Box>
 			</Box>
 
-			{/* Verification Modal */}
 			<Dialog open={modalOpen} onClose={handleCloseModal} maxWidth="sm" fullWidth>
 				<DialogTitle>
 					{modalStep === 1 ? "One Last Step!" : "Verify Your Signup"}
@@ -254,6 +251,12 @@ export default function Finish() {
 							<DialogContentText gutterBottom>
 								You've copied your signup form! Now you must post it to the Flight Rising forums and then copy the link to your post!
 							</DialogContentText>
+							<Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', my: 2 }}>
+								<img src="https://i.imgur.com/pMnn8W3.png" alt="Forum post link button" style={{ maxWidth: '100%', border: '1px solid #ccc' }} />
+								<DialogContentText variant="caption" sx={{ mt: 1 }}>
+									On the forums, click this button to get your post link!
+								</DialogContentText>
+							</Box>
 							<DialogContentText sx={{ fontWeight: 'bold', color: 'red', mt: 2 }}>
 								IMPORTANT: Your signup is NOT recorded until you verify your post in the next step.
 							</DialogContentText>
@@ -273,6 +276,12 @@ export default function Finish() {
 							<DialogContentText gutterBottom>
 								Paste the link to your forum post below to verify your signup.
 							</DialogContentText>
+							<Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', my: 2 }}>
+								<img src="https://i.imgur.com/pMnn8W3.png" alt="Forum post link button" style={{ maxWidth: '100%', border: '1px solid #ccc' }} />
+								<DialogContentText variant="caption" sx={{ mt: 1 }}>
+									On the forums, click this button to get your post link!
+								</DialogContentText>
+							</Box>
 							<TextField
 								autoFocus
 								margin="dense"
@@ -308,7 +317,7 @@ export default function Finish() {
 						<Button
 							onClick={handleGoToForums}
 							variant="contained"
-							color="primary"
+							color="success"
 							disabled={!agreedToVerify}
 						>
 							Go to Forums
@@ -325,6 +334,6 @@ export default function Finish() {
 					)}
 				</DialogActions>
 			</Dialog>
-		</div >
+		</div>
 	);
-};
+}

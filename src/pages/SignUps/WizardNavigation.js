@@ -55,7 +55,7 @@ export const WizardButtons = ({ steps, activeStep, handleBack, handleNext, isNex
                                 onClick={handleNext}
                                 disabled={isNextDisabled}
                                 variant="contained"
-                                color="primary"
+                                color="success"
                             >
                                 {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
                             </Button>
