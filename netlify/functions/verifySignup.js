@@ -1,4 +1,4 @@
-import { client } from "../lib/configHelper";
+import { client, getActiveConfig } from "../lib/configHelper";
 import { trimSubjects, trimPrefs } from "../lib/dataHelpers";
 import axios from "axios";
 import * as cheerio from "cheerio";
