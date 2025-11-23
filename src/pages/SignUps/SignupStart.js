@@ -40,6 +40,12 @@ export default function Home() {
 				</div>
 			</div>
 			<div className="container-fluid" style={{ paddingTop: '2%' }}>
+				{activeEvent.status === 'signups_closed' && (
+					<div className="alert alert-warning container" style={{ maxWidth: '750px' }}>
+						<strong>Signups are currently closed!</strong><br />
+						You may still use this form to generate your signup code for your own records, but you will not be able to submit or verify it.
+					</div>
+				)}
 				<p style={{ maxWidth: '750px' }}>
 					This site is designed to guide you through the sign up process before
 					providing you with the post to copy paste onto the FR forums! Progress is saved between pages on button

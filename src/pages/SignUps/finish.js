@@ -40,7 +40,7 @@ export default function Finish() {
 	// --- Lifecycle Hooks ---
 	// Check verification status on mount
 	useEffect(() => {
-		if (state.signupUuid) {
+		if (state.signupUuid && activeEvent.status !== 'signups_closed') {
 			axios.get(`/api/checkSignupStatus?uuid=${state.signupUuid}`)
 				.then(response => {
 					if (response.data.verified) {
@@ -51,7 +51,7 @@ export default function Finish() {
 					console.error("Error checking signup status:", error);
 				});
 		}
-	}, [state.signupUuid]);
+	}, [state.signupUuid, activeEvent.status]);
 
 	useEffect(() => {
 		const handleBeforeUnload = (event) => {
@@ -91,8 +91,11 @@ export default function Finish() {
 
 	const handleUpdateClick = useCallback(() => {
 		setUpdateStatus("updating");
+		// Sanitize state before sending
+		const { isInitialized, ...signupData } = state;
+
 		axios.post('/api/updateSignup', {
-			...state,
+			...signupData,
 			eventId: activeEvent._id
 		})
 			.then(response => {
@@ -111,13 +114,18 @@ export default function Finish() {
 		document.execCommand('copy');
 		setIsDirty(false);
 
+		if (activeEvent.status === 'signups_closed') {
+			alert("Copied to clipboard! (Signups are closed, so no verification needed)");
+			return;
+		}
+
 		if (isVerified) {
 			handleUpdateClick();
 		} else {
 			setModalOpen(true);
 			setModalStep(1);
 		}
-	}, [selectTextArea, isVerified, handleUpdateClick]);
+	}, [selectTextArea, isVerified, handleUpdateClick, activeEvent.status]);
 
 	const handleGoToForums = useCallback(() => {
 		window.open(activeEvent.signupThreadUrl, '_blank');
@@ -128,8 +136,11 @@ export default function Finish() {
 		setVerificationStatus("verifying");
 		setVerificationMessage("Verifying your post...");
 
+		// Sanitize state before sending
+		const { isInitialized, ...signupData } = state;
+
 		axios.post('/api/verifySignup', {
-			...state,
+			...signupData,
 			postUrl: postUrl,
 			eventId: activeEvent._id
 		})
@@ -201,7 +212,10 @@ export default function Finish() {
 						onClick={handleCopyClick}
 						disabled={updateStatus === "updating"}
 					>
-						{updateStatus === "updating" ? "Updating..." : `Copy and ${isVerified ? "Update" : "Verify"}`}
+						{activeEvent.status === 'signups_closed'
+							? "Copy Code"
+							: (updateStatus === "updating" ? "Updating..." : `Copy and ${isVerified ? "Update" : "Verify"}`)
+						}
 					</Button>
 				</div>
 			</div>
@@ -228,7 +242,7 @@ export default function Finish() {
 							RESET
 						</Button>
 
-						{isVerified && (
+						{(isVerified || activeEvent.status === 'signups_closed') && (
 							<Button
 								onClick={handleGoToForums}
 								variant="contained"
