@@ -1,8 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
 const INITIAL_STATE = {
-  username: "",
-  userId: "",
   prefsByTier: {
     prefer: [],
     willing: [],

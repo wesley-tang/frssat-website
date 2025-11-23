@@ -8,6 +8,7 @@ import FormatItalicIcon from '@mui/icons-material/FormatItalic';
 import FormatUnderlinedIcon from '@mui/icons-material/FormatUnderlined';
 import FormatQuoteIcon from '@mui/icons-material/FormatQuote';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
+import InsertLinkIcon from '@mui/icons-material/InsertLink';
 
 /**
  * BBCodeEditor - A TextField with BBCode formatting toolbar
@@ -40,6 +41,17 @@ export const BBCodeEditor = ({
             const url = window.prompt("Enter the image URL:");
             if (url) {
                 replacement = `[img alt=""]${url}[/img]`;
+            } else {
+                return; // Cancelled
+            }
+        } else if (tag === "url") {
+            const url = window.prompt("Enter the link URL:");
+            if (url) {
+                if (selectedText) {
+                    replacement = `[url=${url}]${selectedText}[/url]`;
+                } else {
+                    replacement = `[url]${url}[/url]`;
+                }
             } else {
                 return; // Cancelled
             }
@@ -86,6 +98,11 @@ export const BBCodeEditor = ({
                 <Tooltip title="Quote">
                     <IconButton onClick={() => handleTagInsert('quote')}>
                         <FormatQuoteIcon />
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title="Link">
+                    <IconButton onClick={() => handleTagInsert('url')}>
+                        <InsertLinkIcon />
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Image">

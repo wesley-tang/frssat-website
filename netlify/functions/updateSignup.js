@@ -1,4 +1,4 @@
-import { client } from "../lib/configHelper";
+import { client, getActiveConfig } from "../lib/configHelper";
 import { trimSubjects, trimPrefs } from "../lib/dataHelpers";
 
 export async function handler(event) {
@@ -7,12 +7,21 @@ export async function handler(event) {
     }
 
     try {
-        const { signupUuid, eventId, ...formData } = JSON.parse(event.body);
+        const { signupUuid, eventId, isInitialized, username, userId, ...formData } = JSON.parse(event.body);
 
         if (!signupUuid) {
             return {
                 statusCode: 400,
                 body: JSON.stringify({ error: "Missing signupUuid" }),
+            };
+        }
+
+        // Check if signups are closed
+        const { activeEvent } = await getActiveConfig();
+        if (activeEvent.status === 'signups_closed') {
+            return {
+                statusCode: 403,
+                body: JSON.stringify({ error: "Signups are closed. Updates are no longer accepted." }),
             };
         }
 

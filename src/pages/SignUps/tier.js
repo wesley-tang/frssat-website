@@ -10,6 +10,7 @@ export const Tier = () => {
 
 	const [openTierA, setOpenTierA] = useState(false);
 	const [openTierB, setOpenTierB] = useState(false);
+	const [hoveredTier, setHoveredTier] = useState(null);
 
 	const handleChange = (event) => {
 		dispatch({
@@ -108,10 +109,12 @@ export const Tier = () => {
 						<div
 							className={`p-3 border rounded h-100 d-flex flex-column ${highTier ? 'border-primary' : ''}`}
 							onClick={() => handleChange({ target: { value: 'a' } })}
+							onMouseEnter={() => setHoveredTier('a')}
+							onMouseLeave={() => setHoveredTier(null)}
 							style={{
 								cursor: 'pointer',
 								transition: 'all 0.2s',
-								opacity: highTier ? 1 : 0.6,
+								opacity: highTier ? 1 : (hoveredTier === 'a' ? 0.9 : 0.6),
 								boxShadow: highTier ? 'inset 0 0 0 2px #0d6efd' : 'none'
 							}}
 						>
@@ -143,10 +146,12 @@ export const Tier = () => {
 						<div
 							className={`p-3 border rounded h-100 d-flex flex-column ${!highTier ? 'border-primary' : ''}`}
 							onClick={() => handleChange({ target: { value: 'b' } })}
+							onMouseEnter={() => setHoveredTier('b')}
+							onMouseLeave={() => setHoveredTier(null)}
 							style={{
 								cursor: 'pointer',
 								transition: 'all 0.2s',
-								opacity: !highTier ? 1 : 0.6,
+								opacity: !highTier ? 1 : (hoveredTier === 'b' ? 0.9 : 0.6),
 								boxShadow: !highTier ? 'inset 0 0 0 2px #0d6efd' : 'none'
 							}}
 						>

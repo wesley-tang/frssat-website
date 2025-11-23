@@ -8,8 +8,6 @@ export const useSignupContext = () => {
 };
 
 const INITIAL_STATE = {
-    username: "",
-    userId: "",
     prefsByTier: {
         prefer: [],
         willing: [],

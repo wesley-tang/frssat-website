@@ -9,7 +9,16 @@ export async function handler(event) {
     }
 
     try {
-        let { signupUuid, postUrl, eventId, isInitialized, ...formData } = JSON.parse(event.body);
+        let { signupUuid, postUrl, eventId, isInitialized, username: _u, userId: _uid, ...formData } = JSON.parse(event.body);
+
+        // Check if signups are closed
+        const { activeEvent } = await getActiveConfig();
+        if (activeEvent.status === 'signups_closed') {
+            return {
+                statusCode: 403,
+                body: JSON.stringify({ error: "Signups are closed. New signups are no longer accepted." }),
+            };
+        }
 
         if (!signupUuid || !postUrl) {
             return {
