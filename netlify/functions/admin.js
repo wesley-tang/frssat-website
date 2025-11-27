@@ -130,7 +130,6 @@ export async function handler(event) {
                 score: m.score,
                 quality: m.quality,
                 pass: m.pass,
-                // details: m.details, // Optional: save details if needed, but might be heavy
                 createdAt: new Date()
             }));
 
@@ -143,14 +142,13 @@ export async function handler(event) {
                 await matchesCollection.insertMany(matchesToSave);
             }
 
-            // todo FOR TESTING ONLY, WE ARE NOT CLOSING SIGNUPS.
-            // // 4. Finalize (Close Signups)
-            // if (finalize) {
-            //     await eventsCollection.updateOne(
-            //         { _id: activeEvent._id },
-            //         { $set: { status: 'signups_closed' } }
-            //     );
-            // }
+            // 4. Finalize (Close Signups)
+            if (finalize) {
+                await eventsCollection.updateOne(
+                    { _id: activeEvent._id },
+                    { $set: { status: 'signups_closed' } }
+                );
+            }
 
             return {
                 statusCode: 200,
