@@ -175,7 +175,7 @@ export default function Finish() {
 	const handleReset = () => {
 		if (window.confirm("Are you sure you want to reset the form? All progress will be lost.")) {
 			dispatch({ type: "RESET" });
-			navigate("../additional-info");
+			navigate("../");
 		}
 	};
 

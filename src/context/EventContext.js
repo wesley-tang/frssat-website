@@ -3,7 +3,7 @@ import axios from 'axios';
 import { CircularProgress, Box, Typography } from '@mui/material'; // For a loading spinner
 
 // 1. Create the context
-const EventContext = createContext(null);
+export const EventContext = createContext(null);
 
 /**
  * This is the "Provider" component. It will wrap your entire app.

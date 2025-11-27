@@ -6,7 +6,7 @@ import { Routes, Route } from 'react-router-dom';
 import { SignupWizard } from './pages/SignUps/SignupWizard';
 import SignupStart from './pages/SignUps/SignupStart';
 import Gallery from './pages/Gallery/gallery';
-import { Submission as SubmissionForm } from './pages/Submissions/submissionForm';
+import SubmissionForm from './pages/Submissions/submissionForm';
 import Submissions from './pages/Submissions/submissions';
 import AdminLogin from './pages/Admin/AdminLogin';
 import AdminDashboard from './pages/Admin/AdminDashboard';
@@ -19,6 +19,7 @@ function App() {
 				<Route exact path="/" element={<SignupStart />} />
 				<Route path="/signup/*" element={<SignupWizard />} />
 				<Route path="/gallery" element={<Gallery />} />
+				<Route path="/gallery/:eventId" element={<Gallery />} />
 				<Route path="/submit" element={<SubmissionForm />} />
 				<Route path="/submissions" element={<Submissions />} />
 				<Route path="/admin" element={<AdminLogin />} />
