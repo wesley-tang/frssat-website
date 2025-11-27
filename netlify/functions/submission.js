@@ -1,41 +1,48 @@
-import CONFIG from "../../src/config/CONFIG.json";
-import {GoogleSpreadsheet} from "google-spreadsheet";
+import { client } from "../lib/configHelper";
 
 export async function handler(event) {
 	if (event.httpMethod !== "GET") {
-		return {statusCode: 405};
+		return { statusCode: 405 };
 	}
 
-	const doc = new GoogleSpreadsheet(CONFIG.currentSheetsID);
+	const uuid = event.queryStringParameters.uuid;
+	if (!uuid) {
+		return { statusCode: 400, body: JSON.stringify({ error: "Missing uuid" }) };
+	}
 
-	await doc.useServiceAccountAuth({
-		"private_key": process.env.PRIVATE_KEY.replaceAll("\\n", "\n"),
-		"client_email": process.env.CLIENT_EMAIL.replaceAll("\\n", "\n")
-	});
-	await doc.loadInfo();
+	try {
+		await client.connect();
+		const database = client.db();
+		const submissionsCollection = database.collection("artSubmissions");
 
-	const rows = await doc.sheetsByTitle["submissions"].getRows();
-	for (const row of rows) {
-		if (row.uuid === event.queryStringParameters.uuid) {
+		const submission = await submissionsCollection.findOne({ uuid: uuid });
+
+		if (submission) {
 			return {
 				statusCode: 200,
 				body: JSON.stringify({
-					uuid: row.uuid,
-					username: row.username,
-					recipient: row.recipient,
-					imageUrl: row.imageUrl,
-					altLinks: row.altLinks,
-					category: row.category,
-					message: row.message,
-					note: row.note,
-					anonymous: row.anonymous === "TRUE",
-					nextYear: row.nextYear === "TRUE"
+					uuid: submission.uuid,
+					username: submission.username,
+					recipient: submission.useMatchupRecipient ? "Submitting for your main recipient!" : submission.recipient,
+					useMatchupRecipient: submission.useMatchupRecipient,
+					imageUrl: submission.imageUrl,
+					altLinks: submission.altLinks, // Array
+					tags: submission.tags, // Array
+					message: submission.message,
+					note: submission.note,
+					anonymous: submission.anonymous,
 				})
 			};
+		} else {
+			return {
+				statusCode: 404
+			}
 		}
-	}
-
-	return {
-		statusCode: 404
+	} catch (error) {
+		console.error("Submission Error:", error);
+		return {
+			statusCode: 500,
+			body: JSON.stringify({ error: "Internal Server Error" })
+		};
 	}
 }

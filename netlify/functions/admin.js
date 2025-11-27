@@ -48,7 +48,9 @@ export async function handler(event) {
 
         // --- GET DATA ---
         if (path === "/data" && event.httpMethod === "GET") {
+            const submissionsCollection = database.collection("artSubmissions");
             const signupsCollection = database.collection("signups");
+            const matchesCollection = database.collection("matchups");
             const eventsCollection = database.collection("events");
 
             // Get all signups (maybe filter by current event?)
@@ -56,6 +58,8 @@ export async function handler(event) {
             const { activeEvent } = await getActiveConfig();
 
             const signups = await signupsCollection.find({ eventId: activeEvent._id }).toArray();
+            const matches = await matchesCollection.find({ eventId: activeEvent._id }).toArray();
+            const submissions = await submissionsCollection.find({ eventId: activeEvent._id }).toArray();
 
             // Refresh active event to get latest status
             const currentEvent = await eventsCollection.findOne({ _id: activeEvent._id });
@@ -65,6 +69,8 @@ export async function handler(event) {
                 headers,
                 body: JSON.stringify({
                     signups,
+                    matches,
+                    submissions,
                     activeEvent: currentEvent
                 })
             };
@@ -98,12 +104,61 @@ export async function handler(event) {
             };
         }
 
-        // --- MATCHING (Placeholder) ---
-        if (path === "/match/dry-run" && event.httpMethod === "POST") {
+        // --- MATCHING ---
+        if (path === "/match/execute" && event.httpMethod === "POST") {
+            const { matches: providedMatches, finalize } = body;
+            const { activeEvent } = await getActiveConfig();
+            const matchesCollection = database.collection("matchups");
+            const eventsCollection = database.collection("events");
+
+            if (!providedMatches || !Array.isArray(providedMatches) || providedMatches.length === 0) {
+                return { statusCode: 400, headers, body: JSON.stringify({ error: "No matches provided." }) };
+            }
+
+            // Use provided matches (from UI review)
+            const matchesToSave = providedMatches.map(m => ({
+                eventId: activeEvent._id,
+                santa: {
+                    id: m.santa.id,
+                    username: m.santa.username,
+                    tier: m.santa.tier
+                },
+                recipient: {
+                    id: m.recipient.id,
+                    username: m.recipient.username
+                },
+                score: m.score,
+                quality: m.quality,
+                pass: m.pass,
+                // details: m.details, // Optional: save details if needed, but might be heavy
+                createdAt: new Date()
+            }));
+
+            // 3. Save Matches
+            if (matchesToSave.length > 0) {
+                // Delete existing matches for this event (Full Reset)
+                await matchesCollection.deleteMany({ eventId: activeEvent._id });
+
+                // Insert new matches
+                await matchesCollection.insertMany(matchesToSave);
+            }
+
+            // todo FOR TESTING ONLY, WE ARE NOT CLOSING SIGNUPS.
+            // // 4. Finalize (Close Signups)
+            // if (finalize) {
+            //     await eventsCollection.updateOne(
+            //         { _id: activeEvent._id },
+            //         { $set: { status: 'signups_closed' } }
+            //     );
+            // }
+
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({ message: "Dry run not implemented yet", matches: [] })
+                body: JSON.stringify({
+                    message: finalize ? "Matching finalized and signups closed." : "Matches saved.",
+                    matchedCount: matchesToSave.length
+                })
             };
         }
 
