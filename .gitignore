@@ -3,3 +3,12 @@ node_modules
 # Local Netlify folder
 .netlify
 .idea
+
+# Local environment variables (secrets)
+.env
+.env.*
+!.env.example
+
+# Local dev server logs
+dev-server.log
+netlify-dev.log
