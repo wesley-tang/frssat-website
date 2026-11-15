@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axios from 'axios';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { DataGrid } from '@mui/x-data-grid';
 import {
     Button, Chip, TextField, Paper, Typography, Box, Grid, Dialog, DialogTitle, DialogContent, DialogActions,
@@ -18,9 +18,26 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import ReplayIcon from '@mui/icons-material/Replay';
 import DownloadIcon from '@mui/icons-material/Download';
 import SettingsIcon from '@mui/icons-material/Settings';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { IconButton, Tooltip, Alert, CircularProgress } from '@mui/material';
 import { runMatching } from '../../utils/matching';
 import ImageCarousel from '../../components/ImageCarousel';
+import { useActiveEventContext } from '../../context/EventContext';
+
+const statusChipColor = (status) => {
+    switch (status) {
+        case 'signups_open':
+            return 'success';
+        case 'setup':
+            return 'info';
+        case 'signups_closed':
+            return 'warning';
+        case 'concluded':
+            return 'secondary';
+        default:
+            return 'default';
+    }
+};
 
 const MatchingSettingsDialog = ({ open, onClose, options, setOptions, maxSubjects }) => {
     const [localOptions, setLocalOptions] = useState(options);
@@ -208,8 +225,10 @@ const MatchingSettingsDialog = ({ open, onClose, options, setOptions, maxSubject
     );
 };
 
-export default function AdminDashboard() {
+export default function AdminEventDashboard() {
     const navigate = useNavigate();
+    const { eventId } = useParams();
+    const { activeEvent: globalActiveEvent, refreshActiveEvent } = useActiveEventContext();
     const [signups, setSignups] = useState([]);
     const [submissions, setSubmissions] = useState([]);
     const [activeEvent, setActiveEvent] = useState(null);
@@ -260,7 +279,8 @@ export default function AdminDashboard() {
     const fetchData = useCallback((adminKey, background = false) => {
         if (!background) setLoading(true);
         axios.get('/api/admin/data', {
-            headers: { 'x-admin-key': adminKey }
+            headers: { 'x-admin-key': adminKey },
+            params: eventId ? { eventId } : {}
         })
             .then(response => {
                 setSignups(response.data.signups);
@@ -297,9 +317,12 @@ export default function AdminDashboard() {
                 setLoading(false);
                 if (error.response && error.response.status === 401) {
                     navigate("/admin");
+                } else if (error.response && error.response.status === 404) {
+                    alert("That event could not be found.");
+                    navigate("/admin/events");
                 }
             });
-    }, [navigate]);
+    }, [navigate, eventId]);
 
     useEffect(() => {
         const adminKey = localStorage.getItem("adminKey");
@@ -314,7 +337,8 @@ export default function AdminDashboard() {
     const handleUpdateEvent = (updates) => {
         const adminKey = localStorage.getItem("adminKey");
         axios.post('/api/admin/event/update', updates, {
-            headers: { 'x-admin-key': adminKey }
+            headers: { 'x-admin-key': adminKey },
+            params: eventId ? { eventId } : {}
         })
             .then(response => {
                 setActiveEvent(response.data.activeEvent);
@@ -322,11 +346,36 @@ export default function AdminDashboard() {
                 setTitleEditValue(response.data.activeEvent.title);
                 setIsEditingEvent(false);
                 setIsEditingTitle(false);
+                refreshActiveEvent().catch(err => {
+                    console.error("Failed to refresh active event:", err);
+                });
                 alert("Event updated successfully");
             })
             .catch(error => {
                 console.error("Error updating event:", error);
-                alert("Failed to update event");
+                alert(error.response?.data?.error || "Failed to update event");
+            });
+    };
+
+    const handleActivateEvent = () => {
+        if (!window.confirm("Make this event the globally active event? The public signup site will switch to it.")) {
+            return;
+        }
+
+        const adminKey = localStorage.getItem("adminKey");
+        axios.post('/api/admin/event/activate', {}, {
+            headers: { 'x-admin-key': adminKey },
+            params: eventId ? { eventId } : {}
+        })
+            .then(async () => {
+                await refreshActiveEvent().catch(err => {
+                    console.error("Failed to refresh active event:", err);
+                });
+                alert("Event is now the globally active event.");
+            })
+            .catch(error => {
+                console.error("Error activating event:", error);
+                alert(error.response?.data?.error || "Failed to activate event");
             });
     };
 
@@ -440,7 +489,8 @@ export default function AdminDashboard() {
             matches: matches,
             finalize: true
         }, {
-            headers: { 'x-admin-key': adminKey }
+            headers: { 'x-admin-key': adminKey },
+            params: eventId ? { eventId } : {}
         })
             .then(response => {
                 alert("Matchups Finalized and Signups Closed!");
@@ -827,6 +877,10 @@ export default function AdminDashboard() {
         return m.santa.tier === (matchFilter === 'A' ? 'Tier A' : 'Tier B');
     });
 
+    const hasThreadUrls = Boolean(activeEvent?.mainThreadUrl && activeEvent?.signupThreadUrl);
+    const isGlobalActive = Boolean(activeEvent && globalActiveEvent && activeEvent._id === globalActiveEvent._id);
+    const signupsAreClosed = ['signups_closed', 'concluded'].includes(activeEvent?.status);
+
     if (loading) return <div>Loading...</div>;
 
     return (
@@ -840,9 +894,14 @@ export default function AdminDashboard() {
             />
 
             <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Typography variant="h4" gutterBottom>
-                    Admin Dashboard
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="h4" gutterBottom>
+                        Event Dashboard
+                    </Typography>
+                    <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/admin/events')}>
+                        All Events
+                    </Button>
+                </Box>
 
                 {/* EVENT STATUS & INFO */}
                 {activeEvent && (
@@ -880,18 +939,60 @@ export default function AdminDashboard() {
                                 </Typography>
                                 <Chip
                                     label={activeEvent.status.toUpperCase()}
-                                    color={activeEvent.status === 'signups_open' ? 'success' : 'warning'}
+                                    color={statusChipColor(activeEvent.status)}
                                     sx={{ fontSize: '1.2rem', padding: '20px 10px' }}
                                 />
-                                <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                                {isGlobalActive && (
+                                    <Chip label="GLOBAL ACTIVE" color="primary" size="small" sx={{ ml: 1 }} />
+                                )}
+                                {activeEvent.status === 'setup' && !hasThreadUrls && (
+                                    <Typography variant="caption" display="block" color="error" sx={{ mt: 1 }}>
+                                        Set both thread URLs below before opening signups.
+                                    </Typography>
+                                )}
+                                <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                                     {activeEvent?.status === 'setup' && (
-                                        <Button variant="contained" color="success" onClick={() => handleUpdateEvent({ status: 'signups_open' })}>
-                                            Open Signups
-                                        </Button>
+                                        <Tooltip title={activeEvent?.status === 'setup' && !hasThreadUrls ? "Set both thread URLs before opening signups" : ""}>
+                                            <span>
+                                                <Button
+                                                    variant="contained"
+                                                    color="success"
+                                                    disabled={activeEvent?.status === 'setup' && !hasThreadUrls}
+                                                    onClick={() => handleUpdateEvent({ status: 'signups_open' })}
+                                                >
+                                                    Open Signups
+                                                </Button>
+                                            </span>
+                                        </Tooltip>
                                     )}
                                     {activeEvent?.status === 'signups_open' && (
-                                        <Button variant="contained" color="warning" onClick={() => handleUpdateEvent({ status: 'signups_closed' })}>
-                                            Close Signups (Manual)
+                                        <>
+                                            <Button variant="contained" color="warning" onClick={() => handleUpdateEvent({ status: 'signups_closed' })}>
+                                                Close Signups (Manual)
+                                            </Button>
+                                            {!isGlobalActive && (
+                                                <Button
+                                                    variant="contained"
+                                                    color="primary"
+                                                    disabled={!hasThreadUrls}
+                                                    onClick={handleActivateEvent}
+                                                >
+                                                    Set as Active Event
+                                                </Button>
+                                            )}
+                                        </>
+                                    )}
+                                    {activeEvent?.status === 'signups_closed' && (
+                                        <Button
+                                            variant="contained"
+                                            color="secondary"
+                                            onClick={() => {
+                                                if (window.confirm("Conclude this event? This is the final status and cannot be undone from the dashboard.")) {
+                                                    handleUpdateEvent({ status: 'concluded' });
+                                                }
+                                            }}
+                                        >
+                                            Conclude Event
                                         </Button>
                                     )}
                                 </Box>
@@ -1136,7 +1237,7 @@ export default function AdminDashboard() {
                                     <Box>
                                         <Box sx={{ display: 'flex', gap: 2 }}>
                                             <Tooltip title="Matching Settings">
-                                                <IconButton onClick={() => setSettingsModalOpen(true)} color="primary" disabled={activeEvent?.status === 'signups_closed'}>
+                                                <IconButton onClick={() => setSettingsModalOpen(true)} color="primary" disabled={signupsAreClosed}>
                                                     <SettingsIcon />
                                                 </IconButton>
                                             </Tooltip>
@@ -1145,7 +1246,7 @@ export default function AdminDashboard() {
                                                 color="primary"
                                                 onClick={handleRunMatching}
                                                 startIcon={<ReplayIcon />}
-                                                disabled={activeEvent?.status === 'signups_closed'}
+                                                disabled={signupsAreClosed}
                                             >
                                                 {matches.length > 0 ? "Re-run Matching" : "Run Matching"}
                                             </Button>
@@ -1155,7 +1256,7 @@ export default function AdminDashboard() {
                                                     variant="contained"
                                                     color="success"
                                                     onClick={handleFinalizeMatchups}
-                                                    disabled={activeEvent?.status === 'signups_closed'}
+                                                    disabled={signupsAreClosed}
                                                 >
                                                     Finalize Matchups
                                                 </Button>
@@ -1212,11 +1313,11 @@ export default function AdminDashboard() {
                 {/* TAB 2: SUBMISSIONS */}
                 <div role="tabpanel" hidden={tabValue !== 2}>
                     {tabValue === 2 && (
-                        <Box sx={{ mt: 2, opacity: activeEvent?.status !== 'signups_closed' ? 0.5 : 1, pointerEvents: activeEvent?.status !== 'signups_closed' ? 'none' : 'auto' }}>
+                        <Box sx={{ mt: 2, opacity: !signupsAreClosed ? 0.5 : 1, pointerEvents: !signupsAreClosed ? 'none' : 'auto' }}>
                             <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Typography variant="h6">
                                     Art Submissions ({submissions.length})
-                                    {activeEvent?.status !== 'signups_closed' && " (Available after signups close)"}
+                                    {!signupsAreClosed && " (Available after signups close)"}
                                 </Typography>
                                 <Button
                                     startIcon={<RefreshIcon />}

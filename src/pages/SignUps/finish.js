@@ -40,7 +40,7 @@ export default function Finish() {
 	// --- Lifecycle Hooks ---
 	// Check verification status on mount
 	useEffect(() => {
-		if (state.signupUuid && activeEvent.status !== 'signups_closed') {
+		if (state.signupUuid && !['signups_closed', 'concluded'].includes(activeEvent.status)) {
 			axios.get(`/api/checkSignupStatus?uuid=${state.signupUuid}`)
 				.then(response => {
 					if (response.data.verified) {
@@ -114,7 +114,7 @@ export default function Finish() {
 		document.execCommand('copy');
 		setIsDirty(false);
 
-		if (activeEvent.status === 'signups_closed') {
+		if (['signups_closed', 'concluded'].includes(activeEvent.status)) {
 			alert("Copied to clipboard! (Signups are closed, so no verification needed)");
 			return;
 		}
@@ -212,7 +212,7 @@ export default function Finish() {
 						onClick={handleCopyClick}
 						disabled={updateStatus === "updating"}
 					>
-						{activeEvent.status === 'signups_closed'
+						{['signups_closed', 'concluded'].includes(activeEvent.status)
 							? "Copy Code"
 							: (updateStatus === "updating" ? "Updating..." : `Copy and ${isVerified ? "Update" : "Verify"}`)
 						}
@@ -242,7 +242,7 @@ export default function Finish() {
 							RESET
 						</Button>
 
-						{(isVerified || activeEvent.status === 'signups_closed') && (
+						{(isVerified || ['signups_closed', 'concluded'].includes(activeEvent.status)) && (
 							<Button
 								onClick={handleGoToForums}
 								variant="contained"

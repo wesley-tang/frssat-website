@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { CircularProgress, Box, Typography } from '@mui/material'; // For a loading spinner
 
@@ -15,24 +15,28 @@ export function EventProvider({ children }) {
 	const [config, setConfig] = useState(null);
 	const [loading, setLoading] = useState(true);
 
-	useEffect(() => {
-		// This runs one time when the app loads
-		async function fetchEventData() {
-			try {
-				const response = await axios.get('/api/getActiveEvent');
+	const fetchEventData = useCallback(async (forceRefresh = false) => {
+		const response = await axios.get('/api/getActiveEvent', {
+			params: forceRefresh ? { refresh: 1 } : {}
+		});
 
-				setActiveEvent(response.data.activeEvent);
-				setConfig(response.data.globalConfig);
+		setActiveEvent(response.data.activeEvent);
+		setConfig(response.data.globalConfig);
+		setLoading(false);
 
-				setLoading(false);
-			} catch (err) {
-				console.error("Failed to load event data", err);
-				// You could set an error state here
-			}
-		}
-		fetchEventData();
+		return response.data;
 	}, []);
 
+	useEffect(() => {
+		// This runs one time when the app loads
+		fetchEventData().catch((err) => {
+			console.error("Failed to load event data", err);
+			// You could set an error state here
+		});
+	}, [fetchEventData]);
+
+	// Used by the admin pages after changing the active event or its status.
+	const refreshActiveEvent = useCallback(() => fetchEventData(true), [fetchEventData]);
 
 	if (loading) {
 		return (
@@ -49,7 +53,7 @@ export function EventProvider({ children }) {
 	}
 
 	return (
-		<EventContext.Provider value={{ activeEvent, config }}>
+		<EventContext.Provider value={{ activeEvent, config, refreshActiveEvent }}>
 			{children}
 		</EventContext.Provider>
 	);

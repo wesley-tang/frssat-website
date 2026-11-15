@@ -13,7 +13,7 @@ export async function handler(event) {
 
         // Check if signups are closed
         const { activeEvent } = await getActiveConfig();
-        if (activeEvent.status === 'signups_closed') {
+        if (['signups_closed', 'concluded'].includes(activeEvent.status)) {
             return {
                 statusCode: 403,
                 body: JSON.stringify({ error: "Signups are closed. New signups are no longer accepted." }),
