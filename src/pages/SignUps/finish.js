@@ -2,57 +2,45 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import TextField from '@mui/material/TextField';
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 
 import { useActiveEventContext } from "../../context/EventContext";
 import { useSignupContext } from "../../context/SignupContext";
 
 export default function Finish() {
-	// --- State Hooks ---
 	const [isDirty, setIsDirty] = useState(true);
 	const [isVerified, setIsVerified] = useState(false);
-	const [updateStatus, setUpdateStatus] = useState("idle"); // idle, updating, success, error
-
-	// Modal State
-	const [modalOpen, setModalOpen] = useState(false);
-	const [modalStep, setModalStep] = useState(1); // 1: Pre-flight, 2: Verification
-	const [agreedToVerify, setAgreedToVerify] = useState(false);
-	const [postUrl, setPostUrl] = useState("");
-	const [verificationStatus, setVerificationStatus] = useState("idle"); // idle, verifying, success, error
-	const [verificationMessage, setVerificationMessage] = useState("");
+	const [saveStatus, setSaveStatus] = useState("idle"); // idle, saving, saved, error
+	const [saveMessage, setSaveMessage] = useState("");
 
 	const { state, dispatch, generateFinalText } = useSignupContext();
 	const { activeEvent } = useActiveEventContext();
 	const navigate = useNavigate();
 
 	const textAreaRef = useRef(null);
+	const autoSaveStartedRef = useRef(false);
 	const finalText = generateFinalText();
+	const signupsClosed = ['signups_closed', 'concluded'].includes(activeEvent.status);
 
-	// --- Lifecycle Hooks ---
-	// Check verification status on mount
+	// Check status on mount so returning verified users see the correct state.
 	useEffect(() => {
-		if (state.signupUuid && activeEvent.status !== 'signups_closed') {
-			axios.get(`/api/checkSignupStatus?uuid=${state.signupUuid}`)
-				.then(response => {
-					if (response.data.verified) {
-						setIsVerified(true);
-					}
-				})
-				.catch(error => {
-					console.error("Error checking signup status:", error);
-				});
-		}
-	}, [state.signupUuid, activeEvent.status]);
+		if (!state.signupUuid) return;
 
+		axios.get(`/api/checkSignupStatus?uuid=${state.signupUuid}`)
+			.then(response => {
+				if (response.data.verified) {
+					setIsVerified(true);
+				}
+			})
+			.catch(error => {
+				console.error("Error checking signup status:", error);
+			});
+	}, [state.signupUuid]);
+
+	// Warn before leaving only while the current form has not been saved.
 	useEffect(() => {
 		const handleBeforeUnload = (event) => {
 			if (isDirty) {
@@ -64,24 +52,11 @@ export default function Finish() {
 
 		window.addEventListener('beforeunload', handleBeforeUnload);
 
-		const textarea = textAreaRef.current;
-		const handleCopy = () => {
-			setIsDirty(false);
-		};
-
-		if (textarea) {
-			textarea.addEventListener('copy', handleCopy);
-		}
-
 		return () => {
 			window.removeEventListener('beforeunload', handleBeforeUnload);
-			if (textarea) {
-				textarea.removeEventListener('copy', handleCopy);
-			}
 		};
 	}, [isDirty]);
 
-	// --- Event Handlers ---
 	const selectTextArea = useCallback(() => {
 		if (textAreaRef.current) {
 			textAreaRef.current.select();
@@ -89,84 +64,78 @@ export default function Finish() {
 		}
 	}, []);
 
-	const handleUpdateClick = useCallback(() => {
-		setUpdateStatus("updating");
+	const saveSignup = useCallback(async () => {
+		if (signupsClosed || !state.isInitialized || !state.signupUuid) {
+			return false;
+		}
+
+		setSaveStatus("saving");
+		setSaveMessage("Saving your form...");
+
 		// Sanitize state before sending
 		const { isInitialized, ...signupData } = state;
 
-		axios.post('/api/updateSignup', {
-			...signupData,
-			eventId: activeEvent._id
-		})
-			.then(response => {
-				setUpdateStatus("success");
-				alert("Signup updated successfully! You can now update your post on the forums.");
-			})
-			.catch(error => {
-				console.error("Error updating signup:", error);
-				setUpdateStatus("error");
-				alert("Failed to update signup. Please try again.");
+		try {
+			const response = await axios.post('/api/saveSignup', {
+				...signupData,
+				eventId: activeEvent._id
 			});
-	}, [state, activeEvent._id]);
 
-	const handleCopyClick = useCallback(() => {
+			setSaveStatus("saved");
+			setIsVerified(!!response.data.verified);
+			setSaveMessage(
+				response.data.verified
+					? "Your signup is saved and verified."
+					: "Your form is saved. Post the code on the signup thread; an admin will verify it."
+			);
+			setIsDirty(false);
+			return true;
+		} catch (error) {
+			console.error("Error saving signup:", error);
+			setSaveStatus("error");
+
+			// Surface actionable server validation errors, but keep unexpected
+			// failures friendly (and don't leak internal details).
+			const serverError = error.response?.status < 500 ? error.response?.data?.error : null;
+			setSaveMessage(
+				serverError ||
+				"We couldn't save your form right now. Your code below is still valid — copy and post it, and we'll try saving again when you click the button."
+			);
+			return false;
+		}
+	}, [state, activeEvent._id, signupsClosed]);
+
+	// Save automatically as soon as the user reaches the final page.
+	useEffect(() => {
+		if (autoSaveStartedRef.current) return;
+		if (!state.isInitialized || !state.signupUuid || signupsClosed) return;
+
+		autoSaveStartedRef.current = true;
+		saveSignup();
+	}, [state.isInitialized, state.signupUuid, signupsClosed, saveSignup]);
+
+	const copyToClipboard = useCallback(() => {
 		selectTextArea();
-		document.execCommand('copy');
-		setIsDirty(false);
+		const copied = document.execCommand('copy');
+		if (copied) {
+			setIsDirty(false);
+		}
+		return copied;
+	}, [selectTextArea]);
 
-		if (activeEvent.status === 'signups_closed') {
-			alert("Copied to clipboard! (Signups are closed, so no verification needed)");
-			return;
+	const handleCopyAndPost = useCallback(() => {
+		copyToClipboard();
+
+		if (saveStatus === "error") {
+			saveSignup();
 		}
 
-		if (isVerified) {
-			handleUpdateClick();
+		if (activeEvent.signupThreadUrl) {
+			window.open(activeEvent.signupThreadUrl, '_blank');
 		} else {
-			setModalOpen(true);
-			setModalStep(1);
+			alert("The signup thread URL is not configured for this event. The code has been copied — please post it manually.");
 		}
-	}, [selectTextArea, isVerified, handleUpdateClick, activeEvent.status]);
-
-	const handleGoToForums = useCallback(() => {
-		window.open(activeEvent.signupThreadUrl, '_blank');
-		setModalStep(2);
-	}, [activeEvent.signupThreadUrl]);
-
-	const handleVerify = useCallback(() => {
-		setVerificationStatus("verifying");
-		setVerificationMessage("Verifying your post...");
-
-		// Sanitize state before sending
-		const { isInitialized, ...signupData } = state;
-
-		axios.post('/api/verifySignup', {
-			...signupData,
-			postUrl: postUrl,
-			eventId: activeEvent._id
-		})
-			.then(response => {
-				setVerificationStatus("success");
-				setVerificationMessage(`Success! Verified as ${response.data.username} (ID: ${response.data.userId})`);
-				setIsVerified(true);
-				setTimeout(() => {
-					setModalOpen(false);
-				}, 2000);
-			})
-			.catch(error => {
-				console.error("Verification failed:", error);
-				setVerificationStatus("error");
-				setVerificationMessage(`${error.response?.data?.error || "Failed to verify. Please check the URL and try again."} If you continue to have issues, please feel free to reach out to Hex.`);
-			});
-	}, [postUrl, state, activeEvent._id]);
-
-	const handleCloseModal = () => {
-		if (verificationStatus !== "success" && modalStep === 2) {
-			if (!window.confirm("Are you sure you want to close? You must verify your signup for it to be recorded.")) {
-				return;
-			}
-		}
-		setModalOpen(false);
-	};
+	}, [copyToClipboard, saveStatus, saveSignup, activeEvent.signupThreadUrl]);
 
 	const handleBack = () => {
 		navigate("../additional-info");
@@ -179,6 +148,41 @@ export default function Finish() {
 		}
 	};
 
+	const statusAlert = (() => {
+		if (signupsClosed) {
+			return (
+				<Alert severity="warning">
+					Signups are currently closed. You can still copy the code for your own records, but
+					it will not be verified or included in the event.
+				</Alert>
+			);
+		}
+
+		if (saveStatus === "saving") {
+			return <Alert severity="info">Saving your form...</Alert>;
+		}
+
+		if (saveStatus === "error") {
+			return <Alert severity="error">{saveMessage}</Alert>;
+		}
+
+		if (saveStatus === "saved") {
+			return (
+				<Alert
+					severity="success"
+					action={isVerified
+						? <Chip label="Verified" color="success" size="small" />
+						: <Chip label="Pending admin verification" color="warning" size="small" />
+					}
+				>
+					{saveMessage}
+				</Alert>
+			);
+		}
+
+		return null;
+	})();
+
 	return (
 		<div className="finishPage">
 			<div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
@@ -187,10 +191,11 @@ export default function Finish() {
 			<div className="container-fluid" style={{ maxWidth: 970 + 'px', marginBottom: 2 + '%' }}>
 				<p align="left">
 					Copy your completed form below and paste it to the forums on our sign
-					up thread. If you need to edit fields in red, please redo the form.<br />
-					(Please <strong> do not change the
-						the code at the bottom</strong>)
+					up thread. An admin will verify your post before your signup is added
+					to the event.<br />
+					(Please <strong>do not change the code at the bottom</strong>)
 				</p>
+				{statusAlert}
 			</div>
 			<div className="container-fluid" style={{ maxWidth: 970 + 'px' }}>
 				<div className="md-form">
@@ -206,16 +211,8 @@ export default function Finish() {
 					/>
 				</div>
 				<div style={{ paddingTop: 2 + '%' }}>
-					<Button
-						className="row justify-content-center"
-						variant="contained"
-						onClick={handleCopyClick}
-						disabled={updateStatus === "updating"}
-					>
-						{activeEvent.status === 'signups_closed'
-							? "Copy Code"
-							: (updateStatus === "updating" ? "Updating..." : `Copy and ${isVerified ? "Update" : "Verify"}`)
-						}
+					<Button variant="contained" onClick={handleCopyAndPost}>
+						Copy and Post
 					</Button>
 				</div>
 			</div>
@@ -237,117 +234,12 @@ export default function Finish() {
 							variant="outlined"
 							color="error"
 							onClick={handleReset}
-							sx={{ mr: isVerified ? 2 : 0 }}
 						>
 							RESET
 						</Button>
-
-						{(isVerified || activeEvent.status === 'signups_closed') && (
-							<Button
-								onClick={handleGoToForums}
-								variant="contained"
-								color="success"
-							>
-								Go to Forums
-							</Button>
-						)}
 					</Box>
 				</Box>
 			</Box>
-
-			<Dialog open={modalOpen} onClose={handleCloseModal} maxWidth="sm" fullWidth>
-				<DialogTitle>
-					{modalStep === 1 ? "One Last Step!" : "Verify Your Signup"}
-				</DialogTitle>
-				<DialogContent>
-					{modalStep === 1 ? (
-						<>
-							<DialogContentText gutterBottom>
-								You've copied your signup form! Now you must post it to the Flight Rising forums and then copy the link to your post!
-							</DialogContentText>
-							<Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', my: 2 }}>
-								<img src="https://i.imgur.com/pMnn8W3.png" alt="Forum post link button" style={{ maxWidth: '100%', border: '1px solid #ccc' }} />
-								<DialogContentText variant="caption" sx={{ mt: 1 }}>
-									On the forums, click this button to get your post link!
-								</DialogContentText>
-							</Box>
-							<DialogContentText sx={{ fontWeight: 'bold', color: 'red', mt: 2 }}>
-								IMPORTANT: Your signup is NOT recorded until you verify your post in the next step.
-							</DialogContentText>
-							<FormControlLabel
-								control={
-									<Checkbox
-										checked={agreedToVerify}
-										onChange={(e) => setAgreedToVerify(e.target.checked)}
-									/>
-								}
-								label="I understand that I must verify my signup for it to be valid."
-								sx={{ mt: 2 }}
-							/>
-						</>
-					) : (
-						<>
-							<DialogContentText gutterBottom>
-								Paste the link to your forum post below to verify your signup.
-							</DialogContentText>
-							<Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', my: 2 }}>
-								<img src="https://i.imgur.com/pMnn8W3.png" alt="Forum post link button" style={{ maxWidth: '100%', border: '1px solid #ccc' }} />
-								<DialogContentText variant="caption" sx={{ mt: 1 }}>
-									On the forums, click this button to get your post link!
-								</DialogContentText>
-							</Box>
-							<TextField
-								autoFocus
-								margin="dense"
-								id="postUrl"
-								label="Forum Post URL"
-								type="url"
-								fullWidth
-								variant="outlined"
-								value={postUrl}
-								onChange={(e) => setPostUrl(e.target.value)}
-								placeholder="https://www1.flightrising.com/forums/cc/..."
-								disabled={verificationStatus === "success"}
-							/>
-							{verificationMessage && (
-								<DialogContentText
-									sx={{
-										mt: 2,
-										color: verificationStatus === "success" ? "green" : verificationStatus === "error" ? "red" : "text.primary",
-										fontWeight: 'bold'
-									}}
-								>
-									{verificationMessage}
-								</DialogContentText>
-							)}
-						</>
-					)}
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={handleCloseModal} color="inherit">
-						Cancel
-					</Button>
-					{modalStep === 1 ? (
-						<Button
-							onClick={handleGoToForums}
-							variant="contained"
-							color="success"
-							disabled={!agreedToVerify}
-						>
-							Go to Forums
-						</Button>
-					) : (
-						<Button
-							onClick={handleVerify}
-							variant="contained"
-							color="secondary"
-							disabled={!postUrl || verificationStatus === "verifying" || verificationStatus === "success"}
-						>
-							{verificationStatus === "verifying" ? "Verifying..." : "Verify"}
-						</Button>
-					)}
-				</DialogActions>
-			</Dialog>
 		</div>
 	);
 }

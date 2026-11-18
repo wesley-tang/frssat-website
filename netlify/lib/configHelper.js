@@ -15,15 +15,24 @@ let configCache = {
 const CACHE_TTL_MS = 5 * 60 * 1000; // 10 minutes
 
 /**
+ * Clears the in-memory config cache for this function instance.
+ * Call this after changing the active event or editing the active event
+ * document so the next request reads fresh data from MongoDB.
+ */
+export function invalidateConfigCache() {
+	configCache = { timestamp: 0, data: null };
+}
+
+/**
  * A cached function to get the global config.
  * It will only hit the database if the cache is older than 10 minutes.
  */
-export async function getActiveConfig() {
+export async function getActiveConfig(forceRefresh = false) {
 	const now = Date.now();
 
 	// 1. CHECK THE CACHE
 	// Is the cache fresh? If yes, return the cached data instantly.
-	if (configCache.data && (now - configCache.timestamp < CACHE_TTL_MS)) {
+	if (!forceRefresh && configCache.data && (now - configCache.timestamp < CACHE_TTL_MS)) {
 		console.log("Serving config from CACHE"); // Good for debugging
 		return configCache.data;
 	}

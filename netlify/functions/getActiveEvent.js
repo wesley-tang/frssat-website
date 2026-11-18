@@ -10,7 +10,8 @@ export async function handler(event) {
 	}
 
 	try {
-		const activeEventContext = await getActiveConfig();
+		const forceRefresh = event.queryStringParameters?.refresh === '1';
+		const activeEventContext = await getActiveConfig(forceRefresh);
 
 		return {
 			statusCode: 200,
