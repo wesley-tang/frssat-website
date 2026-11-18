@@ -18,7 +18,7 @@ export default function AdminLogin() {
 
             // If successful, save to localStorage and redirect
             localStorage.setItem('adminKey', password);
-            navigate('/admin/dashboard');
+            navigate('/admin/events');
         } catch (err) {
             setError("Invalid Password");
         }

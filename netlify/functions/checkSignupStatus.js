@@ -25,7 +25,10 @@ export async function handler(event) {
             statusCode: 200,
             body: JSON.stringify({
                 verified: signup ? !!signup.verified : false,
-                exists: !!signup
+                exists: !!signup,
+                verificationStatus: signup
+                    ? (signup.verificationStatus || (signup.verified ? "verified" : "pending"))
+                    : "not_found"
             }),
         };
 

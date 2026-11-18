@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axios from 'axios';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { DataGrid } from '@mui/x-data-grid';
 import {
     Button, Chip, TextField, Paper, Typography, Box, Grid, Dialog, DialogTitle, DialogContent, DialogActions,
@@ -18,9 +18,26 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import ReplayIcon from '@mui/icons-material/Replay';
 import DownloadIcon from '@mui/icons-material/Download';
 import SettingsIcon from '@mui/icons-material/Settings';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { IconButton, Tooltip, Alert, CircularProgress } from '@mui/material';
 import { runMatching } from '../../utils/matching';
 import ImageCarousel from '../../components/ImageCarousel';
+import { useActiveEventContext } from '../../context/EventContext';
+
+const statusChipColor = (status) => {
+    switch (status) {
+        case 'signups_open':
+            return 'success';
+        case 'setup':
+            return 'info';
+        case 'signups_closed':
+            return 'warning';
+        case 'concluded':
+            return 'secondary';
+        default:
+            return 'default';
+    }
+};
 
 const MatchingSettingsDialog = ({ open, onClose, options, setOptions, maxSubjects }) => {
     const [localOptions, setLocalOptions] = useState(options);
@@ -208,8 +225,10 @@ const MatchingSettingsDialog = ({ open, onClose, options, setOptions, maxSubject
     );
 };
 
-export default function AdminDashboard() {
+export default function AdminEventDashboard() {
     const navigate = useNavigate();
+    const { eventId } = useParams();
+    const { activeEvent: globalActiveEvent, refreshActiveEvent } = useActiveEventContext();
     const [signups, setSignups] = useState([]);
     const [submissions, setSubmissions] = useState([]);
     const [activeEvent, setActiveEvent] = useState(null);
@@ -241,7 +260,13 @@ export default function AdminDashboard() {
     const [unmatchedSantas, setUnmatchedSantas] = useState([]);
     const [matchFilter, setMatchFilter] = useState('all'); // 'all', 'A', 'B'
     const [signupFilter, setSignupFilter] = useState('all'); // 'all', 'A', 'B'
+    const [verificationFilter, setVerificationFilter] = useState('all'); // 'all', 'verified', 'pending'
     const [participantFilter, setParticipantFilter] = useState('all'); // 'all', 'not_submitted', 'not_received'
+    const [verifyModalOpen, setVerifyModalOpen] = useState(false);
+    const [verifySignupTarget, setVerifySignupTarget] = useState(null);
+    const [verifyPostUrl, setVerifyPostUrl] = useState("");
+    const [verifyStatus, setVerifyStatus] = useState("idle"); // idle, verifying, success, error
+    const [verifyMessage, setVerifyMessage] = useState("");
     const [selectedMatch, setSelectedMatch] = useState(null); // For details modal
     const [selectedSubmission, setSelectedSubmission] = useState(null); // For submission details modal
     const [carouselIndex, setCarouselIndex] = useState(0);
@@ -260,7 +285,8 @@ export default function AdminDashboard() {
     const fetchData = useCallback((adminKey, background = false) => {
         if (!background) setLoading(true);
         axios.get('/api/admin/data', {
-            headers: { 'x-admin-key': adminKey }
+            headers: { 'x-admin-key': adminKey },
+            params: eventId ? { eventId } : {}
         })
             .then(response => {
                 setSignups(response.data.signups);
@@ -297,9 +323,12 @@ export default function AdminDashboard() {
                 setLoading(false);
                 if (error.response && error.response.status === 401) {
                     navigate("/admin");
+                } else if (error.response && error.response.status === 404) {
+                    alert("That event could not be found.");
+                    navigate("/admin/events");
                 }
             });
-    }, [navigate]);
+    }, [navigate, eventId]);
 
     useEffect(() => {
         const adminKey = localStorage.getItem("adminKey");
@@ -314,7 +343,8 @@ export default function AdminDashboard() {
     const handleUpdateEvent = (updates) => {
         const adminKey = localStorage.getItem("adminKey");
         axios.post('/api/admin/event/update', updates, {
-            headers: { 'x-admin-key': adminKey }
+            headers: { 'x-admin-key': adminKey },
+            params: eventId ? { eventId } : {}
         })
             .then(response => {
                 setActiveEvent(response.data.activeEvent);
@@ -322,11 +352,36 @@ export default function AdminDashboard() {
                 setTitleEditValue(response.data.activeEvent.title);
                 setIsEditingEvent(false);
                 setIsEditingTitle(false);
+                refreshActiveEvent().catch(err => {
+                    console.error("Failed to refresh active event:", err);
+                });
                 alert("Event updated successfully");
             })
             .catch(error => {
                 console.error("Error updating event:", error);
-                alert("Failed to update event");
+                alert(error.response?.data?.error || "Failed to update event");
+            });
+    };
+
+    const handleActivateEvent = () => {
+        if (!window.confirm("Make this event the globally active event? The public signup site will switch to it.")) {
+            return;
+        }
+
+        const adminKey = localStorage.getItem("adminKey");
+        axios.post('/api/admin/event/activate', {}, {
+            headers: { 'x-admin-key': adminKey },
+            params: eventId ? { eventId } : {}
+        })
+            .then(async () => {
+                await refreshActiveEvent().catch(err => {
+                    console.error("Failed to refresh active event:", err);
+                });
+                alert("Event is now the globally active event.");
+            })
+            .catch(error => {
+                console.error("Error activating event:", error);
+                alert(error.response?.data?.error || "Failed to activate event");
             });
     };
 
@@ -411,12 +466,19 @@ export default function AdminDashboard() {
     };
 
     const handleRunMatching = async () => {
+        const verifiedSignups = signups.filter(s => s.verified);
+
+        if (verifiedSignups.length === 0) {
+            alert("There are no verified signups to match. Verify signups on the Signups tab first.");
+            return;
+        }
+
         setMatchingProgress({ iteration: 0, total: matchingOptions.maxIterations || 100, tier: 'Starting...' });
 
         // Use setTimeout to allow UI to render the loading state before heavy computation starts
         setTimeout(async () => {
             try {
-                const result = await runMatching(signups, matchingOptions, (iteration, total, tier) => {
+                const result = await runMatching(verifiedSignups, matchingOptions, (iteration, total, tier) => {
                     setMatchingProgress({ iteration, total, tier });
                 });
 
@@ -440,7 +502,8 @@ export default function AdminDashboard() {
             matches: matches,
             finalize: true
         }, {
-            headers: { 'x-admin-key': adminKey }
+            headers: { 'x-admin-key': adminKey },
+            params: eventId ? { eventId } : {}
         })
             .then(response => {
                 alert("Matchups Finalized and Signups Closed!");
@@ -448,89 +511,25 @@ export default function AdminDashboard() {
             })
             .catch(error => {
                 console.error("Error finalizing:", error);
-                alert("Failed to finalize matchups");
+                alert(error.response?.data?.error || "Failed to finalize matchups");
             });
     };
 
     const handleGenerateDirectory = () => {
-        // Filter for valid signups (must have username and postUrl)
-        const validSignups = signups.filter(s => s.username && s.postUrl);
+        const adminKey = localStorage.getItem("adminKey");
 
-        if (validSignups.length === 0) {
-            alert("No valid signups (with username and postUrl) to generate directory from.");
-            return;
-        }
-
-        // Helper to extract Post ID for sorting
-        const getPostId = (url) => {
-            if (!url) return 0;
-            const match = url.match(/#post_(\d+)/) || url.match(/#(\d+)/);
-            return match ? parseInt(match[1]) : 0;
-        };
-
-        // Sort by Post ID to ensure correct "Post Order"
-        validSignups.sort((a, b) => getPostId(a.postUrl) - getPostId(b.postUrl));
-
-        let output = "";
-
-        // 1. Participants
-        output += "[b][size=4]PARTICIPANTS:[/size][/b]\n\n";
-
-        const genPartDir = (list) => {
-            return list.map(s => `[url=${s.postUrl}]${s.username}[/url]`).join(" • ");
-        };
-
-        // Post Order
-        output += "[b]By Post Order:[/b]\n";
-        output += genPartDir(validSignups) + "\n\n";
-
-        // Alphabetical
-        const sortedSignups = [...validSignups].sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase()));
-        output += "[b]Alphabetical:[/b]\n";
-        output += genPartDir(sortedSignups) + "\n\n";
-
-        output += `Total Participants: [b]${validSignups.length}[/b]\n\n`;
-
-        // 2. Subjects
-        output += "\n[b][size=4]SUBJECTS:[/size][/b]\n\n";
-
-        // Flatten subjects
-        let allSubjects = [];
-        validSignups.forEach(s => {
-            if (s.subjects) {
-                s.subjects.forEach(sub => {
-                    allSubjects.push({
-                        name: sub.name,
-                        url: s.postUrl,
-                        tags: sub.mainTags || []
-                    });
-                });
-            }
-        });
-
-        const genSubDir = (tagId) => {
-            // Filter by tag ID (loose comparison for string/number safety)
-            const filtered = allSubjects.filter(s => s.tags.some(t => t.id === tagId));
-            filtered.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
-            return filtered.map(s => `[url=${s.url}]${s.name}[/url]`).join(" • ");
-        };
-
-        output += "[b]Dragon Subjects:[/b]\n";
-        output += genSubDir(1) + "\n\n";
-
-        output += "[b]Humanoid Subjects:[/b]\n";
-        output += genSubDir(2) + "\n\n";
-
-        output += "[b]Anthropomorphic Subjects:[/b]\n";
-        output += genSubDir(3) + "\n\n";
-
-        output += "[b]Feral Subjects:[/b]\n";
-        output += genSubDir(4) + "\n\n";
-
-        output += `\nTotal Subjects: [b]${allSubjects.length}[/b]`;
-
-        setGeneratedDirectory(output);
-        setDirectoryModalOpen(true);
+        axios.get('/api/admin/directory', {
+            headers: { 'x-admin-key': adminKey },
+            params: eventId ? { eventId } : {}
+        })
+            .then(response => {
+                setGeneratedDirectory(response.data.directory);
+                setDirectoryModalOpen(true);
+            })
+            .catch(error => {
+                console.error("Error generating directory:", error);
+                alert(error.response?.data?.error || "Failed to generate directory.");
+            });
     };
 
     const handleCopyAndOpen = () => {
@@ -565,6 +564,50 @@ export default function AdminDashboard() {
         setSelectedSignup(null);
     };
 
+    const handleOpenVerifyModal = (signup) => {
+        setVerifySignupTarget(signup);
+        setVerifyPostUrl(signup.postUrl || activeEvent?.signupThreadUrl || "");
+        setVerifyStatus("idle");
+        setVerifyMessage("");
+        setVerifyModalOpen(true);
+    };
+
+    const handleCloseVerifyModal = () => {
+        if (verifyStatus === "verifying") return;
+        setVerifyModalOpen(false);
+        setVerifySignupTarget(null);
+        setVerifyStatus("idle");
+        setVerifyMessage("");
+    };
+
+    const handleVerifySignup = () => {
+        if (!verifySignupTarget || !verifyPostUrl) return;
+
+        const adminKey = localStorage.getItem("adminKey");
+        setVerifyStatus("verifying");
+        setVerifyMessage("Scanning the supplied signup URL for this UUID...");
+
+        axios.post('/api/admin/signups/verify', {
+            signupUuid: verifySignupTarget._id,
+            postUrl: verifyPostUrl
+        }, {
+            headers: { 'x-admin-key': adminKey },
+            params: eventId ? { eventId } : {}
+        })
+            .then(response => {
+                setVerifyStatus("success");
+                setVerifyMessage(`Verified as ${response.data.username} (ID: ${response.data.userId}) after scanning ${response.data.pagesScanned?.length || 1} page(s).`);
+                fetchData(adminKey, true);
+            })
+            .catch(error => {
+                console.error("Error verifying signup:", error);
+                setVerifyStatus("error");
+                const scanned = error.response?.data?.pagesScanned?.length;
+                const scanDetail = scanned ? ` Scanned ${scanned} page(s).` : "";
+                setVerifyMessage((error.response?.data?.error || "Failed to verify signup.") + scanDetail);
+            });
+    };
+
     const formatDateForInput = (dateString) => {
         if (!dateString) return "";
         const date = new Date(dateString);
@@ -574,21 +617,38 @@ export default function AdminDashboard() {
 
     const columns = [
 
-        { field: 'username', headerName: 'Username', width: 150 },
+        {
+            field: 'username',
+            headerName: 'Username',
+            width: 150,
+            renderCell: (params) => params.value || <em>Unverified</em>
+        },
         {
             field: 'userId',
             headerName: 'User ID',
             width: 100,
             renderCell: (params) => (
-                <a
-                    href={`https://www1.flightrising.com/clan-profile/${params.value}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: '#1976d2', textDecoration: 'underline' }}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    {params.value}
-                </a>
+                params.value ? (
+                    <a
+                        href={`https://www1.flightrising.com/clan-profile/${params.value}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#1976d2', textDecoration: 'underline' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {params.value}
+                    </a>
+                ) : '—'
+            )
+        },
+        {
+            field: 'verified',
+            headerName: 'Status',
+            width: 130,
+            renderCell: (params) => (
+                params.value
+                    ? <Chip label="Verified" color="success" size="small" />
+                    : <Chip label="Pending" color="warning" size="small" />
             )
         },
         {
@@ -618,6 +678,21 @@ export default function AdminDashboard() {
             )
         },
         {
+            field: 'verify',
+            headerName: 'Verification',
+            width: 130,
+            renderCell: (params) => (
+                <Button
+                    variant="outlined"
+                    size="small"
+                    color={params.row.verified ? "inherit" : "success"}
+                    onClick={() => handleOpenVerifyModal(params.row)}
+                >
+                    {params.row.verified ? "Re-verify" : "Verify"}
+                </Button>
+            )
+        },
+        {
             field: 'details',
             headerName: 'Details',
             width: 150,
@@ -643,7 +718,13 @@ export default function AdminDashboard() {
         return `hsl(${hue}, 100%, 40%)`;
     };
 
+    const verifiedSignupCount = signups.filter(s => s.verified).length;
+    const pendingSignupCount = signups.length - verifiedSignupCount;
+
     const filteredSignups = signups.filter(s => {
+        if (verificationFilter === 'verified' && !s.verified) return false;
+        if (verificationFilter === 'pending' && s.verified) return false;
+
         if (signupFilter === 'all') return true;
         const isTierA = s.highTier;
         return signupFilter === 'A' ? isTierA : !isTierA;
@@ -805,7 +886,7 @@ export default function AdminDashboard() {
         }
     ];
 
-    const filteredParticipants = signups.map((s, index) => {
+    const filteredParticipants = signups.filter(s => s.verified).map((s, index) => {
         const hasSubmitted = submissions.some(sub => sub.username === s.username);
         const hasReceived = submissions.some(sub => sub.recipient === s.username);
         return {
@@ -827,6 +908,10 @@ export default function AdminDashboard() {
         return m.santa.tier === (matchFilter === 'A' ? 'Tier A' : 'Tier B');
     });
 
+    const hasThreadUrls = Boolean(activeEvent?.mainThreadUrl && activeEvent?.signupThreadUrl);
+    const isGlobalActive = Boolean(activeEvent && globalActiveEvent && activeEvent._id === globalActiveEvent._id);
+    const signupsAreClosed = ['signups_closed', 'concluded'].includes(activeEvent?.status);
+
     if (loading) return <div>Loading...</div>;
 
     return (
@@ -840,9 +925,14 @@ export default function AdminDashboard() {
             />
 
             <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Typography variant="h4" gutterBottom>
-                    Admin Dashboard
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="h4" gutterBottom>
+                        Event Dashboard
+                    </Typography>
+                    <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/admin/events')}>
+                        All Events
+                    </Button>
+                </Box>
 
                 {/* EVENT STATUS & INFO */}
                 {activeEvent && (
@@ -880,18 +970,60 @@ export default function AdminDashboard() {
                                 </Typography>
                                 <Chip
                                     label={activeEvent.status.toUpperCase()}
-                                    color={activeEvent.status === 'signups_open' ? 'success' : 'warning'}
+                                    color={statusChipColor(activeEvent.status)}
                                     sx={{ fontSize: '1.2rem', padding: '20px 10px' }}
                                 />
-                                <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                                {isGlobalActive && (
+                                    <Chip label="GLOBAL ACTIVE" color="primary" size="small" sx={{ ml: 1 }} />
+                                )}
+                                {activeEvent.status === 'setup' && !hasThreadUrls && (
+                                    <Typography variant="caption" display="block" color="error" sx={{ mt: 1 }}>
+                                        Set both thread URLs below before opening signups.
+                                    </Typography>
+                                )}
+                                <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                                     {activeEvent?.status === 'setup' && (
-                                        <Button variant="contained" color="success" onClick={() => handleUpdateEvent({ status: 'signups_open' })}>
-                                            Open Signups
-                                        </Button>
+                                        <Tooltip title={activeEvent?.status === 'setup' && !hasThreadUrls ? "Set both thread URLs before opening signups" : ""}>
+                                            <span>
+                                                <Button
+                                                    variant="contained"
+                                                    color="success"
+                                                    disabled={activeEvent?.status === 'setup' && !hasThreadUrls}
+                                                    onClick={() => handleUpdateEvent({ status: 'signups_open' })}
+                                                >
+                                                    Open Signups
+                                                </Button>
+                                            </span>
+                                        </Tooltip>
                                     )}
                                     {activeEvent?.status === 'signups_open' && (
-                                        <Button variant="contained" color="warning" onClick={() => handleUpdateEvent({ status: 'signups_closed' })}>
-                                            Close Signups (Manual)
+                                        <>
+                                            <Button variant="contained" color="warning" onClick={() => handleUpdateEvent({ status: 'signups_closed' })}>
+                                                Close Signups (Manual)
+                                            </Button>
+                                            {!isGlobalActive && (
+                                                <Button
+                                                    variant="contained"
+                                                    color="primary"
+                                                    disabled={!hasThreadUrls}
+                                                    onClick={handleActivateEvent}
+                                                >
+                                                    Set as Active Event
+                                                </Button>
+                                            )}
+                                        </>
+                                    )}
+                                    {activeEvent?.status === 'signups_closed' && (
+                                        <Button
+                                            variant="contained"
+                                            color="secondary"
+                                            onClick={() => {
+                                                if (window.confirm("Conclude this event? This is the final status and cannot be undone from the dashboard.")) {
+                                                    handleUpdateEvent({ status: 'concluded' });
+                                                }
+                                            }}
+                                        >
+                                            Conclude Event
                                         </Button>
                                     )}
                                 </Box>
@@ -1026,7 +1158,7 @@ export default function AdminDashboard() {
                         <Box sx={{ mt: 2 }}>
                             {/* ACTIONS BAR */}
                             <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Box>
+                                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
                                     <ToggleButtonGroup
                                         value={signupFilter}
                                         exclusive
@@ -1046,6 +1178,28 @@ export default function AdminDashboard() {
                                         </ToggleButton>
                                         <ToggleButton value="B" aria-label="tier b">
                                             Tier B
+                                        </ToggleButton>
+                                    </ToggleButtonGroup>
+
+                                    <ToggleButtonGroup
+                                        value={verificationFilter}
+                                        exclusive
+                                        onChange={(e, newAlignment) => {
+                                            if (newAlignment !== null) {
+                                                setVerificationFilter(newAlignment);
+                                            }
+                                        }}
+                                        aria-label="verification filter"
+                                        size="small"
+                                    >
+                                        <ToggleButton value="all" aria-label="all statuses">
+                                            All Statuses
+                                        </ToggleButton>
+                                        <ToggleButton value="verified" aria-label="verified">
+                                            Verified ({verifiedSignupCount})
+                                        </ToggleButton>
+                                        <ToggleButton value="pending" aria-label="pending verification">
+                                            Pending ({pendingSignupCount})
                                         </ToggleButton>
                                     </ToggleButtonGroup>
                                 </Box>
@@ -1079,6 +1233,10 @@ export default function AdminDashboard() {
                                     )}
                                 </Box>
                             </Box>
+
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                Showing {rows.length} signup(s) — {verifiedSignupCount} verified, {pendingSignupCount} pending verification.
+                            </Typography>
 
                             <div style={{ height: 600, width: '100%' }}>
                                 <DataGrid
@@ -1136,7 +1294,7 @@ export default function AdminDashboard() {
                                     <Box>
                                         <Box sx={{ display: 'flex', gap: 2 }}>
                                             <Tooltip title="Matching Settings">
-                                                <IconButton onClick={() => setSettingsModalOpen(true)} color="primary" disabled={activeEvent?.status === 'signups_closed'}>
+                                                <IconButton onClick={() => setSettingsModalOpen(true)} color="primary" disabled={signupsAreClosed}>
                                                     <SettingsIcon />
                                                 </IconButton>
                                             </Tooltip>
@@ -1145,7 +1303,7 @@ export default function AdminDashboard() {
                                                 color="primary"
                                                 onClick={handleRunMatching}
                                                 startIcon={<ReplayIcon />}
-                                                disabled={activeEvent?.status === 'signups_closed'}
+                                                disabled={signupsAreClosed}
                                             >
                                                 {matches.length > 0 ? "Re-run Matching" : "Run Matching"}
                                             </Button>
@@ -1155,7 +1313,7 @@ export default function AdminDashboard() {
                                                     variant="contained"
                                                     color="success"
                                                     onClick={handleFinalizeMatchups}
-                                                    disabled={activeEvent?.status === 'signups_closed'}
+                                                    disabled={signupsAreClosed}
                                                 >
                                                     Finalize Matchups
                                                 </Button>
@@ -1212,11 +1370,11 @@ export default function AdminDashboard() {
                 {/* TAB 2: SUBMISSIONS */}
                 <div role="tabpanel" hidden={tabValue !== 2}>
                     {tabValue === 2 && (
-                        <Box sx={{ mt: 2, opacity: activeEvent?.status !== 'signups_closed' ? 0.5 : 1, pointerEvents: activeEvent?.status !== 'signups_closed' ? 'none' : 'auto' }}>
+                        <Box sx={{ mt: 2, opacity: !signupsAreClosed ? 0.5 : 1, pointerEvents: !signupsAreClosed ? 'none' : 'auto' }}>
                             <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Typography variant="h6">
                                     Art Submissions ({submissions.length})
-                                    {activeEvent?.status !== 'signups_closed' && " (Available after signups close)"}
+                                    {!signupsAreClosed && " (Available after signups close)"}
                                 </Typography>
                                 <Button
                                     startIcon={<RefreshIcon />}
@@ -1518,21 +1676,83 @@ export default function AdminDashboard() {
                 </DialogActions>
             </Dialog>
 
+            {/* SIGNUP VERIFICATION MODAL */}
+            <Dialog
+                open={verifyModalOpen}
+                onClose={handleCloseVerifyModal}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle>
+                    Verify Signup: {verifySignupTarget?.username || verifySignupTarget?._id}
+                </DialogTitle>
+                <DialogContent>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                        <Alert severity="info">
+                            The server will scan the supplied URL and its pagination for this signup's UUID.
+                            The posted author's username and user ID will be read from the matching forum post.
+                        </Alert>
+                        <TextField
+                            autoFocus
+                            fullWidth
+                            label="Signup / Forum Post URL"
+                            type="url"
+                            value={verifyPostUrl}
+                            onChange={(e) => setVerifyPostUrl(e.target.value)}
+                            placeholder="https://www1.flightrising.com/forums/cc/..."
+                            disabled={verifyStatus === "verifying"}
+                            helperText="Defaults to the event's signup thread. You can paste a specific post URL instead."
+                        />
+                        {verifyMessage && (
+                            <Alert severity={verifyStatus === "success" ? "success" : verifyStatus === "error" ? "error" : "info"}>
+                                {verifyMessage}
+                            </Alert>
+                        )}
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseVerifyModal} disabled={verifyStatus === "verifying"}>
+                        Close
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="success"
+                        onClick={handleVerifySignup}
+                        disabled={!verifyPostUrl || verifyStatus === "verifying"}
+                    >
+                        {verifyStatus === "verifying" ? "Scanning..." : "Verify Signup"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
             {/* SIGNUP DETAILS MODAL */}
             <Dialog open={signupModalOpen} onClose={handleCloseSignupModal} maxWidth="md" fullWidth>
-                <DialogTitle>Signup Details: {selectedSignup?.username}</DialogTitle>
+                <DialogTitle>Signup Details: {selectedSignup?.username || selectedSignup?._id}</DialogTitle>
                 <DialogContent>
                     {selectedSignup && (
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 1 }}>
                             <Paper variant="outlined" sx={{ p: 2 }}>
                                 <Typography variant="h6" gutterBottom>General Info</Typography>
                                 <Grid container spacing={2}>
-                                    <Grid item xs={6}><Typography><strong>User ID:</strong> {selectedSignup.userId}</Typography></Grid>
+                                    <Grid item xs={6}>
+                                        <Typography>
+                                            <strong>Status:</strong>{' '}
+                                            {selectedSignup.verified
+                                                ? <Chip label="Verified" color="success" size="small" />
+                                                : <Chip label="Pending verification" color="warning" size="small" />}
+                                        </Typography>
+                                    </Grid>
+                                    <Grid item xs={6}><Typography><strong>User ID:</strong> {selectedSignup.userId || '—'}</Typography></Grid>
                                     <Grid item xs={6}><Typography><strong>Tier:</strong> {selectedSignup.highTier ? 'A' : 'B'}</Typography></Grid>
                                     <Grid item xs={6}><Typography><strong>Backup Santa:</strong> {selectedSignup.backupSanta ? 'Yes' : 'No'}</Typography></Grid>
                                     <Grid item xs={6}><Typography><strong>No Ranking:</strong> {selectedSignup.noRanking ? 'Yes' : 'No'}</Typography></Grid>
                                     <Grid item xs={12}>
-                                        <Typography><strong>Forum Post:</strong> <a href={selectedSignup.postUrl} target="_blank" rel="noopener noreferrer">Link</a></Typography>
+                                        <Typography>
+                                            <strong>Forum Post:</strong>{' '}
+                                            {selectedSignup.postUrl
+                                                ? <a href={selectedSignup.postUrl} target="_blank" rel="noopener noreferrer">Link</a>
+                                                : 'Not verified yet'}
+                                        </Typography>
                                     </Grid>
                                     <Grid item xs={12}>
                                         <Typography><strong>Additional Info:</strong> {selectedSignup.additionalInfo || 'None'}</Typography>
