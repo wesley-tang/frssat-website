@@ -61,8 +61,8 @@ export default function Home() {
 					<strong>SIGN-UPS
 						CLOSE {new Date(activeEvent.signUpDeadLine).toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone })}</strong>
 					<br /><br />
-					No personal data is collected or stored (local storage is used to retain form data). We are neither
-					affiliated with nor endorsed by
+					Form progress is retained in your browser (local storage). Completed forms are saved for
+					event staff to verify against the signup thread. We are neither affiliated with nor endorsed by
 					Stormlight Workshop LLC.
 					<br />
 					<br />

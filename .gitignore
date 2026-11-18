@@ -1,4 +1,5 @@
 node_modules
+build/
 
 # Local Netlify folder
 .netlify
@@ -12,3 +13,6 @@ node_modules
 # Local dev server logs
 dev-server.log
 netlify-dev.log
+
+# Local scratch notes and experiments
+scratch/

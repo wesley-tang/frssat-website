@@ -1,5 +1,7 @@
 import { client } from "../lib/configHelper";
 import { getActiveConfig, invalidateConfigCache } from "../lib/configHelper";
+import { generateDirectory } from "../lib/directory";
+import { scanForumForUuid } from "../lib/forumVerification";
 
 const ALLOWED_STATUS_TRANSITIONS = {
     setup: ["signups_open"],
@@ -218,6 +220,125 @@ export async function handler(event) {
             };
         }
 
+        // --- DIRECTORY ---
+        // Directory generation is a signup operation, so it is generated
+        // server-side from verified signups only.
+        if (path === "/directory" && event.httpMethod === "GET") {
+            const signupsCollection = database.collection("signups");
+            const verifiedSignups = await signupsCollection
+                .find({ eventId: targetEvent._id, verified: true })
+                .toArray();
+
+            const directory = generateDirectory(verifiedSignups);
+
+            if (!directory) {
+                return {
+                    statusCode: 400,
+                    headers,
+                    body: JSON.stringify({ error: "No verified signups are available to generate a directory." })
+                };
+            }
+
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({ directory })
+            };
+        }
+
+        // --- VERIFY SIGNUP ---
+        // Admin-only. Uses exactly the supplied signup URL and follows its
+        // pagination until the UUID is found.
+        if (path === "/signups/verify" && event.httpMethod === "POST") {
+            const { signupUuid, postUrl } = body;
+
+            if (!signupUuid || !postUrl) {
+                return {
+                    statusCode: 400,
+                    headers,
+                    body: JSON.stringify({ error: "Missing signupUuid or postUrl" })
+                };
+            }
+
+            const signupsCollection = database.collection("signups");
+            const signup = await signupsCollection.findOne({
+                _id: signupUuid,
+                eventId: targetEvent._id
+            });
+
+            if (!signup) {
+                return {
+                    statusCode: 404,
+                    headers,
+                    body: JSON.stringify({ error: "Signup not found for this event." })
+                };
+            }
+
+            let scanResult;
+            try {
+                scanResult = await scanForumForUuid(postUrl, signupUuid);
+            } catch (error) {
+                return {
+                    statusCode: 400,
+                    headers,
+                    body: JSON.stringify({ error: error.message })
+                };
+            }
+
+            if (!scanResult.found) {
+                return {
+                    statusCode: 422,
+                    headers,
+                    body: JSON.stringify({
+                        error: scanResult.truncated
+                            ? "UUID not found before the scan limit was reached. Try the specific post URL."
+                            : "UUID not found on the supplied signup URL.",
+                        pagesScanned: scanResult.pagesScanned,
+                        truncated: scanResult.truncated
+                    })
+                };
+            }
+
+            if (!scanResult.username || !scanResult.userId) {
+                return {
+                    statusCode: 422,
+                    headers,
+                    body: JSON.stringify({
+                        error: "Found the UUID, but could not extract the post author's username or user ID.",
+                        pagesScanned: scanResult.pagesScanned
+                    })
+                };
+            }
+
+            await signupsCollection.updateOne(
+                { _id: signupUuid, eventId: targetEvent._id },
+                {
+                    $set: {
+                        verified: true,
+                        verificationStatus: "verified",
+                        username: scanResult.username,
+                        userId: scanResult.userId,
+                        postUrl: scanResult.postUrl,
+                        verifiedAt: new Date(),
+                        verifiedBy: "admin",
+                        updatedAt: new Date()
+                    }
+                }
+            );
+
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({
+                    message: "Signup verified",
+                    username: scanResult.username,
+                    userId: scanResult.userId,
+                    postUrl: scanResult.postUrl,
+                    pagesScanned: scanResult.pagesScanned
+                })
+            };
+        }
+
         // --- UPDATE EVENT ---
         if (path === "/event/update" && event.httpMethod === "POST") {
             const updates = body;
@@ -285,23 +406,84 @@ export async function handler(event) {
                 return { statusCode: 400, headers, body: JSON.stringify({ error: "No matches provided." }) };
             }
 
-            // Use provided matches (from UI review)
-            const matchesToSave = providedMatches.map(m => ({
-                eventId: targetEvent._id,
-                santa: {
-                    id: m.santa.id,
-                    username: m.santa.username,
-                    tier: m.santa.tier
-                },
-                recipient: {
-                    id: m.recipient.id,
-                    username: m.recipient.username
-                },
-                score: m.score,
-                quality: m.quality,
-                pass: m.pass,
-                createdAt: new Date()
-            }));
+            // Matching is a signup operation, so every participant must be a
+            // verified signup for this event. Do not trust the browser payload.
+            const signupsCollection = database.collection("signups");
+            const verifiedSignups = await signupsCollection
+                .find({ eventId: targetEvent._id, verified: true })
+                .toArray();
+            const verifiedById = new Map(verifiedSignups.map(s => [String(s._id), s]));
+
+            const seenSantas = new Set();
+            const seenRecipients = new Set();
+            const matchesToSave = [];
+
+            for (const m of providedMatches) {
+                const santa = verifiedById.get(String(m?.santa?.id));
+                const recipient = verifiedById.get(String(m?.recipient?.id));
+
+                if (!santa || !recipient) {
+                    return {
+                        statusCode: 400,
+                        headers,
+                        body: JSON.stringify({ error: "All matched signups must be verified for this event." })
+                    };
+                }
+
+                if (String(santa._id) === String(recipient._id)) {
+                    return {
+                        statusCode: 400,
+                        headers,
+                        body: JSON.stringify({ error: "A signup cannot be matched to itself." })
+                    };
+                }
+
+                if (seenSantas.has(String(santa._id))) {
+                    return {
+                        statusCode: 400,
+                        headers,
+                        body: JSON.stringify({ error: `Duplicate Santa in matches: ${santa.username}` })
+                    };
+                }
+
+                if (seenRecipients.has(String(recipient._id))) {
+                    return {
+                        statusCode: 400,
+                        headers,
+                        body: JSON.stringify({ error: `Duplicate recipient in matches: ${recipient.username}` })
+                    };
+                }
+
+                const score = Number(m.score);
+                const quality = Number(m.quality);
+                if (!Number.isFinite(score) || !Number.isFinite(quality)) {
+                    return {
+                        statusCode: 400,
+                        headers,
+                        body: JSON.stringify({ error: "Each match must include numeric score and quality values." })
+                    };
+                }
+
+                seenSantas.add(String(santa._id));
+                seenRecipients.add(String(recipient._id));
+
+                matchesToSave.push({
+                    eventId: targetEvent._id,
+                    santa: {
+                        id: santa._id,
+                        username: santa.username,
+                        tier: santa.highTier ? "Tier A" : "Tier B"
+                    },
+                    recipient: {
+                        id: recipient._id,
+                        username: recipient.username
+                    },
+                    score,
+                    quality,
+                    pass: m.pass,
+                    createdAt: new Date()
+                });
+            }
 
             // 3. Save Matches
             if (matchesToSave.length > 0) {
