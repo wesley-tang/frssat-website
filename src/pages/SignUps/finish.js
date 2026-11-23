@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
+import { v4 as uuidv4 } from 'uuid';
 
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
@@ -28,16 +29,23 @@ export default function Finish() {
 	// Check status on mount so returning verified users see the correct state.
 	useEffect(() => {
 		if (!state.signupUuid) return;
+		let cancelled = false;
 
 		axios.get(`/api/checkSignupStatus?uuid=${state.signupUuid}`)
 			.then(response => {
-				if (response.data.verified) {
-					setIsVerified(true);
+				if (!cancelled) {
+					setIsVerified(!!response.data.verified);
 				}
 			})
 			.catch(error => {
-				console.error("Error checking signup status:", error);
+				if (!cancelled) {
+					console.error("Error checking signup status:", error);
+				}
 			});
+
+		return () => {
+			cancelled = true;
+		};
 	}, [state.signupUuid]);
 
 	// Warn before leaving only while the current form has not been saved.
@@ -64,8 +72,9 @@ export default function Finish() {
 		}
 	}, []);
 
-	const saveSignup = useCallback(async () => {
-		if (signupsClosed || !state.isInitialized || !state.signupUuid) {
+	const saveSignup = useCallback(async (uuidOverride = null, hasRetriedConflict = false) => {
+		const targetUuid = uuidOverride || state.signupUuid;
+		if (signupsClosed || !state.isInitialized || !targetUuid) {
 			return false;
 		}
 
@@ -78,6 +87,7 @@ export default function Finish() {
 		try {
 			const response = await axios.post('/api/saveSignup', {
 				...signupData,
+				signupUuid: targetUuid,
 				eventId: activeEvent._id
 			});
 
@@ -91,6 +101,15 @@ export default function Finish() {
 			setIsDirty(false);
 			return true;
 		} catch (error) {
+			// If the stored UUID belongs to a previous event, assign a fresh UUID
+			// so returning users can reuse their saved form without resetting.
+			// TODO: Add unit test covering 409 UUID rotation and retry behavior.
+			if (error.response?.status === 409 && !hasRetriedConflict) {
+				const newUuid = uuidv4();
+				dispatch({ type: "SET_SIGNUP_UUID", payload: { uuid: newUuid } });
+				return saveSignup(newUuid, true);
+			}
+
 			console.error("Error saving signup:", error);
 			setSaveStatus("error");
 
@@ -103,7 +122,7 @@ export default function Finish() {
 			);
 			return false;
 		}
-	}, [state, activeEvent._id, signupsClosed]);
+	}, [state, activeEvent._id, signupsClosed, dispatch]);
 
 	// Save automatically as soon as the user reaches the final page.
 	useEffect(() => {
